@@ -1,7 +1,7 @@
 "use client"
 
-import { Music, DollarSign, MapPin, BarChart3, Settings, Home } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { BarChart3, DollarSign, Home, MapPin, Music, Settings } from "lucide-react"
 
 interface DesktopNavProps {
   activeTab: string
@@ -27,25 +27,19 @@ export function DesktopNav({ activeTab, onTabChange }: DesktopNavProps) {
             <span className="font-bold text-lg">Busking Tracker</span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {navItems.map((item) => {
               const Icon = item.icon
-              const isActive = activeTab === item.id
-
               return (
-                <button
+                <Button
                   key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
                   onClick={() => onTabChange(item.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                  )}
+                  className="flex items-center gap-2"
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
-                </button>
+                </Button>
               )
             })}
           </div>

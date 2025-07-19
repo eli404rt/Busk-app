@@ -12,79 +12,69 @@ interface WeatherData {
 export function useWeather() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchWeather = async (latitude?: number, longitude?: number) => {
+  const fetchWeather = async (lat?: number, lon?: number) => {
+    if (!lat || !lon) return
+
     setLoading(true)
-    setError(null)
-
     try {
-      // Use Open-Meteo API (free, no API key required)
-      let url =
-        "https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&timezone=auto"
-
-      if (latitude && longitude) {
-        url += `&latitude=${latitude}&longitude=${longitude}`
-      } else {
-        // Try to get user's location
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 10000,
-            enableHighAccuracy: false,
-          })
-        })
-
-        url += `&latitude=${position.coords.latitude}&longitude=${position.coords.longitude}`
-      }
-
-      const response = await fetch(url)
-      if (!response.ok) throw new Error("Weather API request failed")
-
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`,
+      )
       const data = await response.json()
 
-      // Map weather codes to conditions (simplified)
-      const getWeatherCondition = (code: number): string => {
-        if (code === 0) return "Clear"
-        if (code <= 3) return "Partly Cloudy"
-        if (code <= 48) return "Foggy"
-        if (code <= 67) return "Rainy"
-        if (code <= 77) return "Snowy"
-        if (code <= 82) return "Showers"
-        if (code <= 99) return "Thunderstorm"
-        return "Unknown"
+      if (data.current_weather) {
+        setWeather({
+          temperature: Math.round(data.current_weather.temperature),
+          conditions: getWeatherCondition(data.current_weather.weathercode),
+          windSpeed: Math.round(data.current_weather.windspeed),
+          humidity: data.hourly?.relative_humidity_2m?.[0],
+        })
       }
-
-      const weatherData: WeatherData = {
-        temperature: Math.round(data.current.temperature_2m),
-        conditions: getWeatherCondition(data.current.weather_code),
-        windSpeed: data.current.wind_speed_10m ? Math.round(data.current.wind_speed_10m) : undefined,
-        humidity: data.current.relative_humidity_2m,
-      }
-
-      setWeather(weatherData)
-    } catch (err) {
-      console.error("Failed to fetch weather:", err)
-      setError("Failed to fetch weather data")
-
-      // Fallback: set default weather data
-      setWeather({
-        temperature: 20,
-        conditions: "Unknown",
-      })
+    } catch (error) {
+      console.error("Failed to fetch weather:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  // Auto-fetch weather on component mount
   useEffect(() => {
-    fetchWeather()
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetchWeather(position.coords.latitude, position.coords.longitude)
+        },
+        (error) => {
+          console.error("Geolocation error:", error)
+        },
+      )
+    }
   }, [])
 
-  return {
-    weather,
-    loading,
-    error,
-    refetch: fetchWeather,
+  return { weather, loading, fetchWeather }
+}
+
+function getWeatherCondition(code: number): string {
+  const conditions: { [key: number]: string } = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Slight snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    95: "Thunderstorm",
+    96: "Thunderstorm with hail",
+    99: "Thunderstorm with heavy hail",
   }
+
+  return conditions[code] || "Unknown"
 }

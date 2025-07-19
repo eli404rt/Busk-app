@@ -15,6 +15,7 @@ import { MobileNav } from "@/components/mobile-nav"
 import { DesktopNav } from "@/components/desktop-nav"
 import { useDatabase } from "@/hooks/use-database"
 import { useMobile } from "@/hooks/use-mobile"
+import { LiveSessionTracker } from "@/components/live-session-tracker"
 
 export default function BuskingTracker() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -47,6 +48,9 @@ export default function BuskingTracker() {
 
   const DashboardContent = () => (
     <div className="space-y-6">
+      {/* Live Session Tracker */}
+      <LiveSessionTracker />
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -92,63 +96,43 @@ export default function BuskingTracker() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Start tracking your busking activities</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button onClick={() => setShowSessionForm(true)} className="w-full" size="lg">
-              <Plus className="mr-2 h-4 w-4" />
-              Log New Session
-            </Button>
-            <Button onClick={() => setShowExpenseForm(true)} variant="outline" className="w-full" size="lg">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Expense
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Recent Sessions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Sessions</CardTitle>
-            <CardDescription>Your latest busking activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentSessions.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                No sessions yet. Start by logging your first performance!
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {recentSessions.map((session) => {
-                  const location = locations.find((l) => l.id === session.locationId)
-                  return (
-                    <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline">{session.sessionType}</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(session.startTimestamp).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium">{location?.name || "Unknown Location"}</p>
+      {/* Recent Sessions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Sessions</CardTitle>
+          <CardDescription>Your latest busking activities</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentSessions.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">
+              No sessions yet. Start by using the live tracker above!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {recentSessions.map((session) => {
+                const location = locations.find((l) => l.id === session.locationId)
+                return (
+                  <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline">{session.sessionType}</Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(session.startTimestamp).toLocaleDateString()}
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">${session.earnings?.toFixed(2) || "0.00"}</p>
-                        <p className="text-xs text-muted-foreground">{Math.round((session.duration || 0) / 60)}min</p>
-                      </div>
+                      <p className="text-sm font-medium">{location?.name || "Unknown Location"}</p>
                     </div>
-                  )
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-green-600">${session.earnings?.toFixed(2) || "0.00"}</p>
+                      <p className="text-xs text-muted-foreground">{Math.round((session.duration || 0) / 60)}min</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 

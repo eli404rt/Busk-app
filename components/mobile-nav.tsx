@@ -1,7 +1,7 @@
 "use client"
 
-import { Music, DollarSign, MapPin, BarChart3, Settings, Home } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { BarChart3, DollarSign, Home, MapPin, Music, Settings } from "lucide-react"
 
 interface MobileNavProps {
   activeTab: string
@@ -20,23 +20,20 @@ export function MobileNav({ activeTab, onTabChange }: MobileNavProps) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="grid grid-cols-6 h-16">
+      <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = activeTab === item.id
-
           return (
-            <button
+            <Button
               key={item.id}
+              variant={activeTab === item.id ? "default" : "ghost"}
+              size="sm"
               onClick={() => onTabChange(item.id)}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs transition-colors",
-                isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground",
-              )}
+              className="flex flex-col items-center gap-1 h-auto py-2 px-3"
             >
               <Icon className="h-4 w-4" />
-              <span className="truncate">{item.label}</span>
-            </button>
+              <span className="text-xs">{item.label}</span>
+            </Button>
           )
         })}
       </div>
