@@ -1,5 +1,5 @@
-import TypewriterEffect from "../typewriter"
+import TypewriterEffect from "@/components/typewriter-effect"
 
-export default function Page() {
+export default function HomePage() {
   return <TypewriterEffect />
 }
