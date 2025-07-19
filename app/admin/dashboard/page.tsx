@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   PlusCircle,
   Edit,
@@ -21,12 +22,18 @@ import {
   Users,
   FileText,
   MessageSquare,
+  Music,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import { isAuthenticated, setAuthenticated } from "@/lib/auth"
 import { blogPosts, comments } from "@/lib/blog-data"
+import { getSongRequests, getSongRequestsByStatus } from "@/lib/song-requests"
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [songSearchQuery, setSongSearchQuery] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -46,11 +53,51 @@ export default function AdminDashboard() {
       post.category.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
+  const allSongRequests = getSongRequests()
+  const filteredSongRequests = allSongRequests.filter(
+    (request) =>
+      request.name.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
+      request.songTitle.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
+      request.artist.toLowerCase().includes(songSearchQuery.toLowerCase()),
+  )
+
   const stats = {
     totalPosts: blogPosts.length,
     publishedPosts: blogPosts.filter((p) => p.published).length,
     totalViews: blogPosts.reduce((sum, post) => sum + post.views, 0),
     totalComments: comments.length,
+    songRequests: {
+      total: allSongRequests.length,
+      pending: getSongRequestsByStatus("pending").length,
+      approved: getSongRequestsByStatus("approved").length,
+      completed: getSongRequestsByStatus("completed").length,
+    },
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      case "approved":
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-blue-500" />
+      default:
+        return <XCircle className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "approved":
+        return "bg-green-100 text-green-800"
+      case "completed":
+        return "bg-blue-100 text-blue-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
   }
 
   return (
@@ -77,7 +124,7 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
@@ -107,7 +154,18 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalComments}</div>
-              <p className="text-xs text-muted-foreground">Awaiting moderation</p>
+              <p className="text-xs text-muted-foreground">Total comments</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Song Requests</CardTitle>
+              <Music className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.songRequests.total}</div>
+              <p className="text-xs text-muted-foreground">{stats.songRequests.pending} pending</p>
             </CardContent>
           </Card>
 
@@ -123,86 +181,197 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Posts Management */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Blog Posts</CardTitle>
-              <Button>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                New Post
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Views</TableHead>
-                  <TableHead>Published</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPosts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <div className="font-semibold">{post.title}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-xs">{post.excerpt}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{post.category}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={post.published ? "default" : "secondary"}>
-                        {post.published ? "Published" : "Draft"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{post.views.toLocaleString()}</TableCell>
-                    <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        {/* Tabs for different sections */}
+        <Tabs defaultValue="posts" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="posts">Blog Posts</TabsTrigger>
+            <TabsTrigger value="songs">Song Requests</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="posts">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Blog Posts</CardTitle>
+                  <Button>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    New Post
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="max-w-sm"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Views</TableHead>
+                      <TableHead>Published</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div className="font-semibold">{post.title}</div>
+                            <div className="text-sm text-gray-500 truncate max-w-xs">{post.excerpt}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{post.category}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={post.published ? "default" : "secondary"}>
+                            {post.published ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{post.views.toLocaleString()}</TableCell>
+                        <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="songs">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Song Requests</CardTitle>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1 text-yellow-500" />
+                      {stats.songRequests.pending} Pending
+                    </span>
+                    <span className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
+                      {stats.songRequests.approved} Approved
+                    </span>
+                    <span className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1 text-blue-500" />
+                      {stats.songRequests.completed} Completed
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search song requests..."
+                    value={songSearchQuery}
+                    onChange={(e) => setSongSearchQuery(e.target.value)}
+                    className="max-w-sm"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Requester</TableHead>
+                      <TableHead>Song & Artist</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Message</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredSongRequests.map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div className="font-semibold">{request.name}</div>
+                            <div className="text-sm text-gray-500">{request.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-semibold">{request.songTitle}</div>
+                            <div className="text-sm text-gray-500">by {request.artist}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(request.status)}
+                            <Badge className={getStatusColor(request.status)}>
+                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="max-w-xs truncate text-sm text-gray-600">
+                            {request.message || "No message"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Music className="mr-2 h-4 w-4" />
+                                Mark Complete
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   )

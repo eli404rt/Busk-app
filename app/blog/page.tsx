@@ -17,13 +17,13 @@ export default function BlogPage() {
   }, [searchQuery, allPosts])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <BlogHeader onSearch={setSearchQuery} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!searchQuery && featuredPosts.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Featured Posts</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">Featured Posts</h2>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {featuredPosts.map((post) => (
                 <BlogPostCard key={post.id} post={post} featured />
@@ -33,13 +33,13 @@ export default function BlogPage() {
         )}
 
         <section>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl font-bold text-white mb-6">
             {searchQuery ? `Search Results for "${searchQuery}"` : "All Posts"}
           </h2>
 
           {filteredPosts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
+              <p className="text-gray-400 text-lg">
                 {searchQuery ? "No posts found matching your search." : "No posts available."}
               </p>
             </div>

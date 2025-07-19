@@ -5,7 +5,7 @@ export interface User {
 
 export const ADMIN_USER: User = {
   username: "eli404",
-  password: "Ry@n2025",
+  password: "Ry@n2025!!",
 }
 
 export function validateAdmin(username: string, password: string): boolean {
