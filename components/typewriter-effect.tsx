@@ -1,3 +1,5 @@
+"use client" // This must be the absolute first line of the file
+
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button" // Assuming this path is correct for a Next.js project
 import { Music, DollarSign, BookOpen, Instagram } from "lucide-react"
@@ -70,7 +72,7 @@ export default function TypewriterEffect() {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 relative">
       {/* Custom CSS for animations */}
-      <style jsx>{`
+      <style>{` {/* Removed jsx attribute */}
         @keyframes cursor-blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
