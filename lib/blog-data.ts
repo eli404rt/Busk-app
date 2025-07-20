@@ -13,7 +13,6 @@ export interface BlogPost {
   category: string
   featured: boolean
   published: boolean
-  readTime: number
   views: number
   mediaFiles?: MediaFile[]
 }
@@ -64,7 +63,6 @@ Every moment we don't create is a moment we're not fully alive. Art isn't just w
     category: "Philosophy",
     featured: true,
     published: true,
-    readTime: 5,
     views: 1247,
     mediaFiles: [],
   },
@@ -99,7 +97,6 @@ Music is meant to be shared. If there's a song that speaks to your soul, don't h
     category: "Music",
     featured: false,
     published: true,
-    readTime: 3,
     views: 892,
     mediaFiles: [],
   },
@@ -134,7 +131,6 @@ Despite technological advances, the most powerful art still comes from the human
     category: "Technology",
     featured: false,
     published: true,
-    readTime: 4,
     views: 654,
     mediaFiles: [],
   },

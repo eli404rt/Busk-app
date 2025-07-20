@@ -145,6 +145,22 @@ export default function AdminDashboard() {
     }
   }
 
+  const formatTimestamp = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+    if (diffInHours < 1) return "just now"
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -285,7 +301,7 @@ export default function AdminDashboard() {
                           </Badge>
                         </TableCell>
                         <TableCell>{post.views.toLocaleString()}</TableCell>
-                        <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatTimestamp(post.publishedAt)}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -294,17 +310,17 @@ export default function AdminDashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
+                              <DropdownMenuItem asChild>
+                                <Link href={`/blog/${post.slug}`}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View
+                                </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                              <DropdownMenuItem asChild>
+                                <Link href={`/admin/edit-post/${post.id}`}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </Link>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -382,7 +398,7 @@ export default function AdminDashboard() {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatTimestamp(request.createdAt)}</TableCell>
                         <TableCell>
                           <div className="max-w-xs truncate text-sm text-gray-600">
                             {request.message || "No message"}

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Heart, QrCode } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { TipButton } from "@/components/tip-button"
 
 export default function TipPage() {
   return (
@@ -28,12 +29,16 @@ export default function TipPage() {
           </p>
         </div>
 
+        <div className="flex justify-center mb-8">
+          <TipButton />
+        </div>
+
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
                 <QrCode className="h-5 w-5 mr-2" />
-                Scan to Tip
+                Alternative QR Code
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
@@ -41,7 +46,7 @@ export default function TipPage() {
                 <Image src="/tip-qr-code.png" alt="Tip QR Code" width={200} height={200} className="mx-auto" />
               </div>
               <p className="text-gray-300 text-sm">
-                Scan this QR code with your phone's camera to open the tipping page
+                Scan this QR code with your phone's camera as an alternative tipping method
               </p>
             </CardContent>
           </Card>

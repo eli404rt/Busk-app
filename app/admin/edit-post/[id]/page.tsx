@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,15 +8,21 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
-import { addBlogPost } from "@/lib/blog-data"
+import { getBlogPostById, updateBlogPost, deleteBlogPost } from "@/lib/blog-data"
 import { MediaUploader } from "@/components/media-uploader"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import type { MediaFile } from "@/lib/media-utils"
 
-export default function NewPostPage() {
+interface EditPostPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EditPostPage({ params }: EditPostPageProps) {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -31,29 +36,43 @@ export default function NewPostPage() {
   })
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/admin")
+      return
     }
-  }, [router])
+
+    const post = getBlogPostById(params.id)
+    if (!post) {
+      router.push("/admin/dashboard")
+      return
+    }
+
+    setFormData({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      author: post.author,
+      tags: post.tags.join(", "),
+      category: post.category,
+      featured: post.featured,
+      published: post.published,
+    })
+    setMediaFiles(post.mediaFiles || [])
+    setLoading(false)
+  }, [params.id, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Generate slug from title if not provided
-    const slug =
-      formData.slug ||
-      formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-
-    const newPost = {
+    const updatedPost = {
       ...formData,
-      slug,
       tags: formData.tags
         .split(",")
         .map((tag) => tag.trim())
@@ -62,12 +81,28 @@ export default function NewPostPage() {
     }
 
     try {
-      addBlogPost(newPost)
+      updateBlogPost(params.id, updatedPost)
       router.push("/admin/dashboard")
     } catch (error) {
-      console.error("Error creating post:", error)
+      console.error("Error updating post:", error)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      deleteBlogPost(params.id)
+      router.push("/admin/dashboard")
+    } catch (error) {
+      console.error("Error deleting post:", error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -100,6 +135,14 @@ export default function NewPostPage() {
     setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -110,14 +153,20 @@ export default function NewPostPage() {
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Post</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Edit Post</h1>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? "Deleting..." : "Delete Post"}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>New Blog Post</CardTitle>
+            <CardTitle>Edit Blog Post</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -134,13 +183,14 @@ export default function NewPostPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="slug">Slug (optional)</Label>
+                  <Label htmlFor="slug">Slug</Label>
                   <Input
                     id="slug"
                     name="slug"
                     value={formData.slug}
                     onChange={handleInputChange}
-                    placeholder="auto-generated from title"
+                    placeholder="post-slug"
+                    required
                   />
                 </div>
               </div>
@@ -211,13 +261,13 @@ export default function NewPostPage() {
                       checked={formData.published}
                       onCheckedChange={handleSwitchChange("published")}
                     />
-                    <Label htmlFor="published">Publish Immediately</Label>
+                    <Label htmlFor="published">Published</Label>
                   </div>
                 </div>
 
                 <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Creating..." : "Create Post"}
+                  {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>
