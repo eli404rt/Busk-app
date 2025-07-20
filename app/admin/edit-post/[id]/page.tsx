@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Loader2 } from "lucide-react" // Added Loader2 import
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
 import { getJournalPostById, updateJournalPost } from "@/lib/journal-data" // Updated imports

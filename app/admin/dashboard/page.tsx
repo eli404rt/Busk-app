@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Loader2 } from "lucide-react" // Added Loader2 import
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
 import { getAllJournalPosts, deleteJournalPost, updateJournalPost, JournalPost } from "@/lib/journal-data" // Updated imports
