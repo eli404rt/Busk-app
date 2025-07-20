@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -8,13 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
+import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
-import { getBlogPostById, updateBlogPost, deleteBlogPost } from "@/lib/blog-data"
+import { getJournalPostById, updateJournalPost } from "@/lib/journal-data" // Updated imports
 import { MediaUploader } from "@/components/media-uploader"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import type { MediaFile } from "@/lib/media-utils"
+import type { JournalPost } from "@/lib/journal-data" // Updated import
 
 interface EditPostPageProps {
   params: {
@@ -23,22 +25,12 @@ interface EditPostPageProps {
 }
 
 export default function EditPostPage({ params }: EditPostPageProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    excerpt: "",
-    content: "",
-    author: "Eli Cadieux",
-    tags: "",
-    category: "",
-    featured: false,
-    published: true,
-  })
+  const [formData, setFormData] = useState<Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views"> | null>(null) // Updated interface
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { id } = params
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -46,33 +38,43 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       return
     }
 
-    const post = getBlogPostById(params.id)
-    if (!post) {
+    const post = getJournalPostById(id) // Updated function call
+    if (post) {
+      setFormData({
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        content: post.content,
+        author: post.author,
+        tags: post.tags.join(", "),
+        category: post.category,
+        featured: post.featured,
+        published: post.published,
+      })
+      setMediaFiles(post.mediaFiles || [])
+    } else {
+      // Handle case where post is not found, maybe redirect to a 404 or dashboard
       router.push("/admin/dashboard")
-      return
     }
-
-    setFormData({
-      title: post.title,
-      slug: post.slug,
-      excerpt: post.excerpt,
-      content: post.content,
-      author: post.author,
-      tags: post.tags.join(", "),
-      category: post.category,
-      featured: post.featured,
-      published: post.published,
-    })
-    setMediaFiles(post.mediaFiles || [])
     setLoading(false)
-  }, [params.id, router])
+  }, [id, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const updatedPost = {
+    if (!formData) return
+
+    const slug =
+      formData.slug ||
+      formData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
+
+    const updatedPostData = { // Renamed variable
       ...formData,
+      slug,
       tags: formData.tags
         .split(",")
         .map((tag) => tag.trim())
@@ -81,7 +83,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     }
 
     try {
-      updateBlogPost(params.id, updatedPost)
+      updateJournalPost(id, updatedPostData) // Updated function call
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error updating post:", error)
@@ -90,41 +92,16 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     }
   }
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      deleteBlogPost(params.id)
-      router.push("/admin/dashboard")
-    } catch (error) {
-      console.error("Error deleting post:", error)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
+    setFormData((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))
   }
 
   const handleContentChange = (content: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      content,
-    }))
+    setFormData((prev) => (prev ? { ...prev, content } : null))
   }
 
   const handleSwitchChange = (name: string) => (checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: checked,
-    }))
+    setFormData((prev) => (prev ? { ...prev, [name]: checked } : null))
   }
 
   const handleMediaAdd = (media: MediaFile) => {
@@ -135,10 +112,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
-  if (loading) {
+  if (loading || !formData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div>Loading...</div>
+        <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
       </div>
     )
   }
@@ -153,20 +130,14 @@ export default function EditPostPage({ params }: EditPostPageProps) {
               Back to Dashboard
             </Button>
           </Link>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Edit Post</h1>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? "Deleting..." : "Delete Post"}
-            </Button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Journal Entry</h1> {/* Updated text */}
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Edit Blog Post</CardTitle>
+            <CardTitle>Edit Journal Entry</CardTitle> {/* Updated text */}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -183,14 +154,13 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">Slug (optional)</Label>
                   <Input
                     id="slug"
                     name="slug"
                     value={formData.slug}
                     onChange={handleInputChange}
-                    placeholder="post-slug"
-                    required
+                    placeholder="auto-generated from title"
                   />
                 </div>
               </div>
@@ -253,7 +223,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                       checked={formData.featured}
                       onCheckedChange={handleSwitchChange("featured")}
                     />
-                    <Label htmlFor="featured">Featured Post</Label>
+                    <Label htmlFor="featured">Featured Entry</Label> {/* Updated text */}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -261,13 +231,13 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                       checked={formData.published}
                       onCheckedChange={handleSwitchChange("published")}
                     />
-                    <Label htmlFor="published">Published</Label>
+                    <Label htmlFor="published">Publish Immediately</Label>
                   </div>
                 </div>
 
                 <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Saving..." : "Save Changes"}
+                  {isSubmitting ? "Updating..." : "Update Entry"} {/* Updated text */}
                 </Button>
               </div>
             </form>

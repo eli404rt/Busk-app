@@ -2,442 +2,124 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  PlusCircle,
-  Edit,
-  Trash2,
-  Eye,
-  MoreHorizontal,
-  LogOut,
-  Search,
-  BarChart3,
-  Users,
-  FileText,
-  MessageSquare,
-  Music,
-  Clock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react"
-import { isAuthenticated, setAuthenticated } from "@/lib/auth"
-import { blogPosts, comments } from "@/lib/blog-data"
-import {
-  getSongRequests,
-  getSongRequestsByStatus,
-  updateSongRequestStatus,
-  deleteSongRequest,
-} from "@/lib/song-requests"
+import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight } from "lucide-react"
+import Link from "next/link"
+import { isAuthenticated } from "@/lib/auth"
+import { getAllJournalPosts, deleteJournalPost, updateJournalPost, JournalPost } from "@/lib/journal-data" // Updated imports
+import { format } from "date-fns"
 
-export default function AdminDashboard() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [songSearchQuery, setSongSearchQuery] = useState("")
-  const [refreshKey, setRefreshKey] = useState(0)
+export default function DashboardPage() {
+  const [posts, setPosts] = useState<JournalPost[]>([]) // Updated interface
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/admin")
+      return
     }
+    const fetchedPosts = getAllJournalPosts() // Updated function call
+    setPosts(fetchedPosts)
+    setLoading(false)
   }, [router])
 
-  // Listen for storage changes to refresh song requests
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "songRequests") {
-        setRefreshKey((prev) => prev + 1)
-      }
-    }
-
-    const handleCustomEvent = () => {
-      setRefreshKey((prev) => prev + 1)
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("songRequestsUpdated", handleCustomEvent)
-
-    // Poll for updates every 3 seconds
-    const interval = setInterval(() => {
-      setRefreshKey((prev) => prev + 1)
-    }, 3000)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("songRequestsUpdated", handleCustomEvent)
-      clearInterval(interval)
-    }
-  }, [])
-
-  const handleLogout = () => {
-    setAuthenticated(false)
-    router.push("/admin")
-  }
-
-  const filteredPosts = blogPosts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  const allSongRequests = getSongRequests()
-  const filteredSongRequests = allSongRequests.filter(
-    (request) =>
-      request.name.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
-      request.songTitle.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
-      request.artist.toLowerCase().includes(songSearchQuery.toLowerCase()),
-  )
-
-  const stats = {
-    totalPosts: blogPosts.length,
-    publishedPosts: blogPosts.filter((p) => p.published).length,
-    totalViews: blogPosts.reduce((sum, post) => sum + post.views, 0),
-    totalComments: comments.length,
-    songRequests: {
-      total: allSongRequests.length,
-      pending: getSongRequestsByStatus("pending").length,
-      approved: getSongRequestsByStatus("approved").length,
-      completed: getSongRequestsByStatus("completed").length,
-    },
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case "approved":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-blue-500" />
-      default:
-        return <XCircle className="h-4 w-4 text-gray-500" />
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this journal entry?")) { // Updated text
+      deleteJournalPost(id) // Updated function call
+      setPosts(getAllJournalPosts()) // Refresh posts // Updated function call
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "approved":
-        return "bg-green-100 text-green-800"
-      case "completed":
-        return "bg-blue-100 text-blue-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  const handleTogglePublish = (id: string, currentStatus: boolean) => {
+    const updatedPost = updateJournalPost(id, { published: !currentStatus }) // Updated function call
+    if (updatedPost) {
+      setPosts(getAllJournalPosts()) // Refresh posts // Updated function call
     }
   }
 
-  const handleUpdateStatus = (id: string, status: string) => {
-    updateSongRequestStatus(id, status as any)
-    setRefreshKey((prev) => prev + 1)
-  }
-
-  const handleDeleteRequest = (id: string) => {
-    if (confirm("Are you sure you want to delete this song request?")) {
-      deleteSongRequest(id)
-      setRefreshKey((prev) => prev + 1)
-    }
-  }
-
-  const formatTimestamp = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-
-    if (diffInHours < 1) return "just now"
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-    })
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <Link href="/blog">
-                <Button variant="outline">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Blog
-                </Button>
-              </Link>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Journal Dashboard</h1> {/* Updated text */}
+          <Link href="/admin/new-post">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Entry {/* Updated text */}
+            </Button>
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts}</div>
-              <p className="text-xs text-muted-foreground">{stats.publishedPosts} published</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Across all posts</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Comments</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalComments}</div>
-              <p className="text-xs text-muted-foreground">Total comments</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Song Requests</CardTitle>
-              <Music className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.songRequests.total}</div>
-              <p className="text-xs text-muted-foreground">{stats.songRequests.pending} pending</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(stats.totalViews / stats.totalPosts)}</div>
-              <p className="text-xs text-muted-foreground">Avg views per post</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs for different sections */}
-        <Tabs defaultValue="posts" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="posts">Blog Posts</TabsTrigger>
-            <TabsTrigger value="songs">Song Requests ({stats.songRequests.total})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="posts">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Blog Posts</CardTitle>
-                  <Link href="/admin/new-post">
-                    <Button>
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      New Post
-                    </Button>
-                  </Link>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Views</TableHead>
-                      <TableHead>Published</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPosts.map((post) => (
-                      <TableRow key={post.id}>
-                        <TableCell className="font-medium">
-                          <div>
-                            <div className="font-semibold">{post.title}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">{post.excerpt}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{post.category}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={post.published ? "default" : "secondary"}>
-                            {post.published ? "Published" : "Draft"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{post.views.toLocaleString()}</TableCell>
-                        <TableCell>{formatTimestamp(post.publishedAt)}</TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/blog/${post.slug}`}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/admin/edit-post/${post.id}`}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </Link>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="songs" key={refreshKey}>
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Song Requests</CardTitle>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <span className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-yellow-500" />
-                      {stats.songRequests.pending} Pending
-                    </span>
-                    <span className="flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                      {stats.songRequests.approved} Approved
-                    </span>
-                    <span className="flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-1 text-blue-500" />
-                      {stats.songRequests.completed} Completed
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search song requests..."
-                    value={songSearchQuery}
-                    onChange={(e) => setSongSearchQuery(e.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Requester</TableHead>
-                      <TableHead>Song & Artist</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Message</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSongRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell className="font-medium">
-                          <div>
-                            <div className="font-semibold">{request.name}</div>
-                            <div className="text-sm text-gray-500">{request.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-semibold">{request.songTitle}</div>
-                            <div className="text-sm text-gray-500">by {request.artist}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(request.status)}
-                            <Badge className={getStatusColor(request.status)}>
-                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell>{formatTimestamp(request.createdAt)}</TableCell>
-                        <TableCell>
-                          <div className="max-w-xs truncate text-sm text-gray-600">
-                            {request.message || "No message"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(request.id, "approved")}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Approve
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(request.id, "completed")}>
-                                <Music className="mr-2 h-4 w-4" />
-                                Mark Complete
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteRequest(request.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>All Journal Entries</CardTitle> {/* Updated text */}
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Published</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Views</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>{post.category}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTogglePublish(post.id, post.published)}
+                      >
+                        {post.published ? (
+                          <ToggleRight className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <ToggleLeft className="h-5 w-5 text-red-500" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell>{post.featured ? "Yes" : "No"}</TableCell>
+                    <TableCell>{post.views}</TableCell>
+                    <TableCell className="flex space-x-2">
+                      <Link href={`/journal/${post.slug}`}> {/* Updated link */}
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Link href={`/admin/edit-post/${post.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </main>
     </div>
   )

@@ -12,13 +12,14 @@ import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
-import { addBlogPost } from "@/lib/blog-data"
+import { addJournalPost } from "@/lib/journal-data" // Updated import from blog-data to journal-data and function name
 import { MediaUploader } from "@/components/media-uploader"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import type { MediaFile } from "@/lib/media-utils"
+import type { JournalPost } from "@/lib/journal-data" // Updated import to JournalPost
 
 export default function NewPostPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views">>({ // Updated interface
     title: "",
     slug: "",
     excerpt: "",
@@ -51,7 +52,7 @@ export default function NewPostPage() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "")
 
-    const newPost = {
+    const newPostData = { // Renamed variable for clarity
       ...formData,
       slug,
       tags: formData.tags
@@ -62,7 +63,7 @@ export default function NewPostPage() {
     }
 
     try {
-      addBlogPost(newPost)
+      addJournalPost(newPostData) // Updated function call
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error creating post:", error)
@@ -110,14 +111,14 @@ export default function NewPostPage() {
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Post</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Create New Journal Entry</h1> {/* Updated text */}
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>New Blog Post</CardTitle>
+            <CardTitle>New Journal Entry</CardTitle> {/* Updated text */}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +130,7 @@ export default function NewPostPage() {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    placeholder="Enter post title"
+                    placeholder="Enter journal entry title" {/* Updated placeholder */}
                     required
                   />
                 </div>
@@ -152,7 +153,7 @@ export default function NewPostPage() {
                   name="excerpt"
                   value={formData.excerpt}
                   onChange={handleInputChange}
-                  placeholder="Brief description of the post"
+                  placeholder="Brief description of the entry" {/* Updated placeholder */}
                   required
                 />
               </div>
@@ -162,7 +163,7 @@ export default function NewPostPage() {
                 <MarkdownEditor
                   value={formData.content}
                   onChange={handleContentChange}
-                  placeholder="Write your post content in Markdown..."
+                  placeholder="Write your journal entry content in Markdown..." {/* Updated placeholder */}
                 />
               </div>
 
@@ -179,7 +180,7 @@ export default function NewPostPage() {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    placeholder="e.g., Philosophy, Music, Technology"
+                    placeholder="e.g., Reflection, Creative Writing, Travel" {/* Updated placeholder */}
                     required
                   />
                 </div>
@@ -190,7 +191,7 @@ export default function NewPostPage() {
                     name="tags"
                     value={formData.tags}
                     onChange={handleInputChange}
-                    placeholder="e.g., art, creativity, life"
+                    placeholder="e.g., personal, thoughts, daily" {/* Updated placeholder */}
                   />
                 </div>
               </div>
@@ -203,7 +204,7 @@ export default function NewPostPage() {
                       checked={formData.featured}
                       onCheckedChange={handleSwitchChange("featured")}
                     />
-                    <Label htmlFor="featured">Featured Post</Label>
+                    <Label htmlFor="featured">Featured Entry</Label> {/* Updated text */}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -217,7 +218,7 @@ export default function NewPostPage() {
 
                 <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Creating..." : "Create Post"}
+                  {isSubmitting ? "Creating..." : "Create Entry"} {/* Updated text */}
                 </Button>
               </div>
             </form>
