@@ -19,28 +19,32 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files) return
+    if (!files || files.length === 0) return
 
     setIsUploading(true)
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
 
-      if (!isValidMediaFile(file)) {
-        alert(`Invalid file: ${file.name}. Please upload images, audio (MP3), or video files under 50MB.`)
-        continue
-      }
+        if (!isValidMediaFile(file)) {
+          alert(`Invalid file: ${file.name}. Please upload images, audio (MP3), or video files under 50MB.`)
+          continue
+        }
 
-      try {
-        const mediaFile = await createMediaFile(file)
-        onMediaAdd(mediaFile)
-      } catch (error) {
-        console.error("Error processing file:", error)
-        alert(`Error processing ${file.name}`)
+        try {
+          const mediaFile = await createMediaFile(file)
+          onMediaAdd(mediaFile)
+        } catch (error) {
+          console.error("Error processing file:", error)
+          alert(`Error processing ${file.name}`)
+        }
       }
+    } catch (error) {
+      console.error("Error handling files:", error)
+    } finally {
+      setIsUploading(false)
     }
-
-    setIsUploading(false)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -89,6 +93,7 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
             type="button"
             className="text-blue-600 hover:text-blue-800 underline"
             onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
           >
             browse
           </button>
@@ -102,6 +107,7 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
           accept="image/*,audio/*,video/*"
           className="hidden"
           onChange={(e) => handleFileSelect(e.target.files)}
+          disabled={isUploading}
         />
       </div>
 
@@ -123,27 +129,36 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
                       </p>
                     </div>
                   </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => onMediaRemove(media.id)}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onMediaRemove(media.id)}
+                    disabled={isUploading}
+                  >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
 
                 {/* Preview */}
                 <div className="mt-3">
-                  {media.type === "image" && (
+                  {media.type === "image" && media.url && (
                     <img
                       src={media.url || "/placeholder.svg"}
                       alt={media.name}
                       className="max-w-full h-32 object-cover rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg?height=128&width=200&text=Image+Error"
+                      }}
                     />
                   )}
-                  {media.type === "audio" && (
+                  {media.type === "audio" && media.url && (
                     <audio controls className="w-full">
                       <source src={media.url} type="audio/mpeg" />
                       Your browser does not support the audio element.
                     </audio>
                   )}
-                  {media.type === "video" && (
+                  {media.type === "video" && media.url && (
                     <video controls className="w-full max-h-48">
                       <source src={media.url} type="video/mp4" />
                       Your browser does not support the video element.

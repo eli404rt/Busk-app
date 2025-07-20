@@ -32,6 +32,7 @@ export default function NewPostPage() {
   })
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string>("")
   const router = useRouter()
 
   useEffect(() => {
@@ -42,39 +43,67 @@ export default function NewPostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isSubmitting) return // Prevent double submission
+
     setIsSubmitting(true)
-
-    const slug =
-      formData.slug ||
-      formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-
-    const newPostData = {
-      ...formData,
-      slug,
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      mediaFiles,
-    }
+    setError("")
 
     try {
-      addJournalPost(newPostData)
+      // Validate required fields
+      if (!formData.title.trim()) {
+        throw new Error("Title is required")
+      }
+      if (!formData.excerpt.trim()) {
+        throw new Error("Excerpt is required")
+      }
+      if (!formData.category.trim()) {
+        throw new Error("Category is required")
+      }
+
+      const slug =
+        formData.slug.trim() ||
+        formData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "")
+
+      const newPostData = {
+        ...formData,
+        title: formData.title.trim(),
+        excerpt: formData.excerpt.trim(),
+        content: formData.content.trim(),
+        category: formData.category.trim(),
+        slug,
+        tags: formData.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        mediaFiles: [...mediaFiles], // Create a copy
+      }
+
+      console.log("Creating journal post:", newPostData)
+
+      const createdPost = addJournalPost(newPostData)
+      console.log("Journal post created:", createdPost)
+
+      // Small delay to ensure data is saved
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error creating post:", error)
+      setError(error instanceof Error ? error.message : "Failed to create journal entry")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }))
   }
 
@@ -93,10 +122,12 @@ export default function NewPostPage() {
   }
 
   const handleMediaAdd = (media: MediaFile) => {
+    console.log("Adding media:", media)
     setMediaFiles((prev) => [...prev, media])
   }
 
   const handleMediaRemove = (mediaId: string) => {
+    console.log("Removing media:", mediaId)
     setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
@@ -120,10 +151,16 @@ export default function NewPostPage() {
             <CardTitle>New Journal Entry</CardTitle>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     name="title"
@@ -146,7 +183,7 @@ export default function NewPostPage() {
               </div>
 
               <div>
-                <Label htmlFor="excerpt">Excerpt</Label>
+                <Label htmlFor="excerpt">Excerpt *</Label>
                 <Input
                   id="excerpt"
                   name="excerpt"
@@ -173,7 +210,7 @@ export default function NewPostPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Category *</Label>
                   <Input
                     id="category"
                     name="category"

@@ -9,14 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save, Loader2 } from "lucide-react" // Added Loader2 import
+import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
-import { getJournalPostById, updateJournalPost } from "@/lib/journal-data" // Updated imports
+import { getJournalPostById, updateJournalPost } from "@/lib/journal-data"
 import { MediaUploader } from "@/components/media-uploader"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import type { MediaFile } from "@/lib/media-utils"
-import type { JournalPost } from "@/lib/journal-data" // Updated import
+import type { JournalPost } from "@/lib/journal-data"
 
 interface EditPostPageProps {
   params: {
@@ -25,10 +25,11 @@ interface EditPostPageProps {
 }
 
 export default function EditPostPage({ params }: EditPostPageProps) {
-  const [formData, setFormData] = useState<Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views"> | null>(null) // Updated interface
+  const [formData, setFormData] = useState<Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views"> | null>(null)
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>("")
   const router = useRouter()
   const { id } = params
 
@@ -38,7 +39,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       return
     }
 
-    const post = getJournalPostById(id) // Updated function call
+    const post = getJournalPostById(id)
     if (post) {
       setFormData({
         title: post.title,
@@ -53,7 +54,6 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       })
       setMediaFiles(post.mediaFiles || [])
     } else {
-      // Handle case where post is not found, maybe redirect to a 404 or dashboard
       router.push("/admin/dashboard")
     }
     setLoading(false)
@@ -61,40 +61,69 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isSubmitting || !formData) return
+
     setIsSubmitting(true)
-
-    if (!formData) return
-
-    const slug =
-      formData.slug ||
-      formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-
-    const updatedPostData = {
-      // Renamed variable
-      ...formData,
-      slug,
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      mediaFiles,
-    }
+    setError("")
 
     try {
-      updateJournalPost(id, updatedPostData) // Updated function call
+      // Validate required fields
+      if (!formData.title.trim()) {
+        throw new Error("Title is required")
+      }
+      if (!formData.excerpt.trim()) {
+        throw new Error("Excerpt is required")
+      }
+      if (!formData.category.trim()) {
+        throw new Error("Category is required")
+      }
+
+      const slug =
+        formData.slug.trim() ||
+        formData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "")
+
+      const updatedPostData = {
+        ...formData,
+        title: formData.title.trim(),
+        excerpt: formData.excerpt.trim(),
+        content: formData.content.trim(),
+        category: formData.category.trim(),
+        slug,
+        tags: formData.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        mediaFiles: [...mediaFiles], // Create a copy
+      }
+
+      console.log("Updating journal post:", updatedPostData)
+
+      const updatedPost = updateJournalPost(id, updatedPostData)
+      if (!updatedPost) {
+        throw new Error("Failed to update journal entry")
+      }
+
+      console.log("Journal post updated:", updatedPost)
+
+      // Small delay to ensure data is saved
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error updating post:", error)
+      setError(error instanceof Error ? error.message : "Failed to update journal entry")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))
+    const { name, value } = e.target
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null))
   }
 
   const handleContentChange = (content: string) => {
@@ -106,10 +135,12 @@ export default function EditPostPage({ params }: EditPostPageProps) {
   }
 
   const handleMediaAdd = (media: MediaFile) => {
+    console.log("Adding media:", media)
     setMediaFiles((prev) => [...prev, media])
   }
 
   const handleMediaRemove = (mediaId: string) => {
+    console.log("Removing media:", mediaId)
     setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
@@ -131,20 +162,26 @@ export default function EditPostPage({ params }: EditPostPageProps) {
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Journal Entry</h1> {/* Updated text */}
+          <h1 className="text-2xl font-bold text-gray-900">Edit Journal Entry</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Edit Journal Entry</CardTitle> {/* Updated text */}
+            <CardTitle>Edit Journal Entry</CardTitle>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     name="title"
@@ -167,7 +204,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
               </div>
 
               <div>
-                <Label htmlFor="excerpt">Excerpt</Label>
+                <Label htmlFor="excerpt">Excerpt *</Label>
                 <Input
                   id="excerpt"
                   name="excerpt"
@@ -194,7 +231,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Category *</Label>
                   <Input
                     id="category"
                     name="category"
@@ -224,7 +261,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                       checked={formData.featured}
                       onCheckedChange={handleSwitchChange("featured")}
                     />
-                    <Label htmlFor="featured">Featured Entry</Label> {/* Updated text */}
+                    <Label htmlFor="featured">Featured Entry</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -238,7 +275,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
                 <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Updating..." : "Update Entry"} {/* Updated text */}
+                  {isSubmitting ? "Updating..." : "Update Entry"}
                 </Button>
               </div>
             </form>
