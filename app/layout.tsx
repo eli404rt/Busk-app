@@ -6,13 +6,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Eli's Art & Life - A Journey Through Creativity",
-  description: "Exploring the intersection of art, life, and love through philosophy, music, and creative expression.",
+  title: "Eli",
+  description: "Eli was a man once",
   keywords: ["art", "philosophy", "music", "creativity", "blog", "life"],
   authors: [{ name: "Eli Cadieux" }],
   openGraph: {
-    title: "Eli's Art & Life",
-    description: "A journey through creativity and philosophical expression",
+    title: "Eli",
+    description: "A journey ",
     type: "website",
   },
     generator: 'v0.dev'
