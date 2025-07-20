@@ -44,7 +44,7 @@ export default function NewPostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (isSubmitting) return // Prevent double submission
+    if (isSubmitting) return
 
     setIsSubmitting(true)
     setError("")
@@ -79,17 +79,18 @@ export default function NewPostPage() {
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        mediaFiles: [...mediaFiles], // Create a copy
+        mediaFiles: [...mediaFiles],
       }
 
       console.log("Creating journal post:", newPostData)
 
       const createdPost = addJournalPost(newPostData)
-      console.log("Journal post created:", createdPost)
+      console.log("Journal post created successfully:", createdPost.id)
 
-      // Small delay to ensure data is saved
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      // Show success message
+      alert(`Journal entry "${createdPost.title}" created successfully!`)
 
+      // Navigate back to dashboard
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error creating post:", error)

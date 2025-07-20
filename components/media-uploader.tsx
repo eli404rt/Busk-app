@@ -5,7 +5,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Upload, X, ImageIcon, Music, Video, File } from "lucide-react"
-import { createMediaFile, isValidMediaFile, formatFileSize, type MediaFile } from "@/lib/media-utils"
+import { createMediaFile, isValidMediaFile, formatFileSize, getFullImage, type MediaFile } from "@/lib/media-utils"
 
 interface MediaUploaderProps {
   onMediaAdd: (media: MediaFile) => void
@@ -16,19 +16,22 @@ interface MediaUploaderProps {
 export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return
 
     setIsUploading(true)
+    setUploadProgress("Processing files...")
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
+        setUploadProgress(`Processing ${file.name} (${i + 1}/${files.length})...`)
 
         if (!isValidMediaFile(file)) {
-          alert(`Invalid file: ${file.name}. Please upload images, audio (MP3), or video files under 50MB.`)
+          alert(`Invalid file: ${file.name}. Please upload images (max 5MB), audio, or video files (max 10MB).`)
           continue
         }
 
@@ -37,13 +40,19 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
           onMediaAdd(mediaFile)
         } catch (error) {
           console.error("Error processing file:", error)
-          alert(`Error processing ${file.name}`)
+          if (error instanceof Error && error.message.includes("too large")) {
+            alert(error.message)
+          } else {
+            alert(`Error processing ${file.name}: ${error instanceof Error ? error.message : "Unknown error"}`)
+          }
         }
       }
     } catch (error) {
       console.error("Error handling files:", error)
+      alert("An error occurred while processing files. Please try again.")
     } finally {
       setIsUploading(false)
+      setUploadProgress("")
     }
   }
 
@@ -76,6 +85,16 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
     }
   }
 
+  const getImageSrc = (media: MediaFile): string => {
+    if (media.type === "image") {
+      // Try to get full image first, fallback to thumbnail
+      return (
+        getFullImage(media.id) || media.thumbnail || media.url || "/placeholder.svg?height=128&width=200&text=Image"
+      )
+    }
+    return media.url || "/placeholder.svg?height=128&width=200&text=Media"
+  }
+
   return (
     <div className="space-y-4">
       <div
@@ -98,7 +117,11 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
             browse
           </button>
         </p>
-        <p className="text-sm text-gray-500">Supports images, audio (MP3), and video files up to 50MB</p>
+        <p className="text-sm text-gray-500">
+          Images: max 5MB (JPEG, PNG, GIF, WebP)
+          <br />
+          Audio/Video: max 10MB (MP3, WAV, MP4, WebM)
+        </p>
 
         <input
           ref={fileInputRef}
@@ -111,19 +134,23 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
         />
       </div>
 
-      {isUploading && <div className="text-center text-gray-600">Processing files...</div>}
+      {isUploading && (
+        <div className="text-center text-gray-600">
+          <div className="animate-pulse">{uploadProgress}</div>
+        </div>
+      )}
 
       {mediaFiles.length > 0 && (
         <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">Uploaded Media</h4>
-          <div className="grid gap-2">
+          <h4 className="font-medium text-gray-900">Uploaded Media ({mediaFiles.length})</h4>
+          <div className="grid gap-2 max-h-60 overflow-y-auto">
             {mediaFiles.map((media) => (
               <Card key={media.id} className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     {getMediaIcon(media.type)}
                     <div>
-                      <p className="font-medium text-sm">{media.name}</p>
+                      <p className="font-medium text-sm truncate max-w-48">{media.name}</p>
                       <p className="text-xs text-gray-500">
                         {media.type} • {formatFileSize(media.size)}
                       </p>
@@ -142,9 +169,9 @@ export function MediaUploader({ onMediaAdd, onMediaRemove, mediaFiles }: MediaUp
 
                 {/* Preview */}
                 <div className="mt-3">
-                  {media.type === "image" && media.url && (
+                  {media.type === "image" && (
                     <img
-                      src={media.url || "/placeholder.svg"}
+                      src={getImageSrc(media) || "/placeholder.svg"}
                       alt={media.name}
                       className="max-w-full h-32 object-cover rounded"
                       onError={(e) => {

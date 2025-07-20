@@ -1,4 +1,5 @@
-import { getJournalPostBySlug, getCommentsByPostId } from "@/lib/journal-data" // Updated imports
+import { getJournalPostBySlug, getCommentsByPostId } from "@/lib/journal-data"
+import { getFullImage } from "@/lib/media-utils"
 import { notFound } from "next/navigation"
 import { format } from "date-fns"
 import { ChevronLeft } from "lucide-react"
@@ -22,6 +23,16 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
   const comments = getCommentsByPostId(post.id)
 
+  // Get the display image for media files
+  const getMediaDisplayUrl = (media: any) => {
+    if (media.type === "image") {
+      return (
+        getFullImage(media.id) || media.thumbnail || media.url || "/placeholder.svg?height=400&width=800&text=Image"
+      )
+    }
+    return media.url || "/placeholder.svg?height=400&width=800&text=Media"
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="bg-gray-900 py-6">
@@ -38,19 +49,47 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           <p className="text-gray-400 text-sm mb-4">
             By {post.author} on {format(new Date(post.publishedAt), "MMMM dd, yyyy")}
           </p>
-          <div className="mb-6">
-            {post.mediaFiles && post.mediaFiles.length > 0 && (
-              <img
-                src={post.mediaFiles[0].url || "/placeholder.svg"}
-                alt={post.title}
-                className="w-full h-auto rounded-lg object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "https://placehold.co/1200x600/000000/FFFFFF?text=Image+Unavailable"
-                  e.currentTarget.onerror = null
-                }}
-              />
-            )}
-          </div>
+
+          {/* Media Gallery */}
+          {post.mediaFiles && post.mediaFiles.length > 0 && (
+            <div className="mb-6">
+              <div className="grid gap-4">
+                {post.mediaFiles.map((media) => (
+                  <div key={media.id} className="rounded-lg overflow-hidden">
+                    {media.type === "image" && (
+                      <img
+                        src={getMediaDisplayUrl(media) || "/placeholder.svg"}
+                        alt={media.name}
+                        className="w-full h-auto rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg?height=400&width=800&text=Image+Unavailable"
+                        }}
+                      />
+                    )}
+                    {media.type === "audio" && media.url && (
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-300 mb-2">{media.name}</p>
+                        <audio controls className="w-full">
+                          <source src={media.url} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      </div>
+                    )}
+                    {media.type === "video" && media.url && (
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-300 mb-2">{media.name}</p>
+                        <video controls className="w-full max-h-96">
+                          <source src={media.url} type="video/mp4" />
+                          Your browser does not support the video element.
+                        </video>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <ReactMarkdown rehypePlugins={[rehypeRaw]}>{post.content}</ReactMarkdown>
           <div className="mt-8 pt-8 border-t border-gray-700">
             <h2 className="text-2xl font-bold mb-4">Categories & Tags</h2>

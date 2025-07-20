@@ -1,7 +1,7 @@
 import type { MediaFile } from "./media-utils"
+import { removeStoredImage, cleanupOrphanedMedia } from "./media-utils"
 
 export interface JournalPost {
-  // Renamed from BlogPost
   id: string
   title: string
   slug: string
@@ -30,7 +30,6 @@ export interface Comment {
 
 // Default journal posts data
 const defaultJournalPosts: JournalPost[] = [
-  // Renamed from defaultBlogPosts
   {
     id: "1",
     title: "The Philosophy of Art and Life",
@@ -138,31 +137,112 @@ Despite technological advances, the most powerful art still comes from the human
   },
 ]
 
-// Use localStorage for persistence with fallback
+// Storage key
+const STORAGE_KEY = "journalPosts"
+const STORAGE_VERSION_KEY = "journalPostsVersion"
+
+// Use localStorage for persistence with fallback and error handling
 function getJournalPostsFromStorage(): JournalPost[] {
-  // Renamed function
   if (typeof window === "undefined") return defaultJournalPosts
-  const stored = localStorage.getItem("journalPosts") // Changed localStorage key to "journalPosts"
-  if (stored) {
+
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const posts = JSON.parse(stored)
+      if (Array.isArray(posts) && posts.length > 0) {
+        return posts
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to load journal posts from storage:", error)
+    // Clear corrupted data
     try {
-      return JSON.parse(stored)
-    } catch {
-      return defaultJournalPosts
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(STORAGE_VERSION_KEY)
+    } catch (e) {
+      console.warn("Failed to clear corrupted data:", e)
     }
   }
+
   // Initialize localStorage with default posts
-  localStorage.setItem("journalPosts", JSON.stringify(defaultJournalPosts)) // Changed localStorage key
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultJournalPosts))
+    localStorage.setItem(STORAGE_VERSION_KEY, Date.now().toString())
+  } catch (error) {
+    console.warn("Failed to initialize journal posts in storage:", error)
+  }
+
   return defaultJournalPosts
 }
 
 function saveJournalPostsToStorage(posts: JournalPost[]): void {
-  // Renamed function
   if (typeof window === "undefined") return
-  localStorage.setItem("journalPosts", JSON.stringify(posts)) // Changed localStorage key
+
+  try {
+    // Create a copy without full image URLs to save space
+    const postsToSave = posts.map((post) => ({
+      ...post,
+      mediaFiles: post.mediaFiles?.map((media) => ({
+        ...media,
+        // Keep only thumbnail for images, remove full URL to save space
+        url: media.type === "image" ? undefined : media.url,
+      })),
+    }))
+
+    const dataString = JSON.stringify(postsToSave)
+
+    // Check if the data is too large (leave some buffer)
+    if (dataString.length > 4.5 * 1024 * 1024) {
+      // 4.5MB limit
+      throw new Error("Data too large for localStorage")
+    }
+
+    localStorage.setItem(STORAGE_KEY, dataString)
+    localStorage.setItem(STORAGE_VERSION_KEY, Date.now().toString())
+
+    // Trigger storage event for cross-tab updates
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: STORAGE_KEY,
+        newValue: dataString,
+        oldValue: null,
+        storageArea: localStorage,
+      }),
+    )
+
+    console.log(`Saved ${posts.length} journal posts to storage`)
+  } catch (error) {
+    console.error("Failed to save journal posts to storage:", error)
+
+    if (error instanceof Error && error.message.includes("quota")) {
+      // Try to free up space by cleaning up orphaned media
+      const allMediaIds = posts.flatMap((post) => post.mediaFiles?.map((media) => media.id) || [])
+      cleanupOrphanedMedia(allMediaIds)
+
+      // Try saving again
+      try {
+        const postsToSave = posts.map((post) => ({
+          ...post,
+          mediaFiles: post.mediaFiles?.map((media) => ({
+            ...media,
+            url: media.type === "image" ? undefined : media.url,
+          })),
+        }))
+        const dataString = JSON.stringify(postsToSave)
+        localStorage.setItem(STORAGE_KEY, dataString)
+        localStorage.setItem(STORAGE_VERSION_KEY, Date.now().toString())
+      } catch (retryError) {
+        alert("Storage quota exceeded. Please remove some media files or entries.")
+        throw retryError
+      }
+    } else {
+      throw error
+    }
+  }
 }
 
-// Export the journalPosts array as required
-export const journalPosts = typeof window !== "undefined" ? getJournalPostsFromStorage() : defaultJournalPosts // Renamed export
+// Remove the static export that was causing caching issues
+// export const journalPosts = typeof window !== "undefined" ? getJournalPostsFromStorage() : defaultJournalPosts
 
 export const comments: Comment[] = [
   {
@@ -185,13 +265,17 @@ export const comments: Comment[] = [
   },
 ]
 
-// Helper functions (renamed to reflect JournalPost)
+// Helper functions - all now call getJournalPostsFromStorage() directly for fresh data
 export function getJournalPosts(): JournalPost[] {
-  return getJournalPostsFromStorage().filter((post) => post.published)
+  const posts = getJournalPostsFromStorage()
+  console.log(`Retrieved ${posts.length} total posts, ${posts.filter((p) => p.published).length} published`)
+  return posts.filter((post) => post.published)
 }
 
 export function getAllJournalPosts(): JournalPost[] {
-  return getJournalPostsFromStorage()
+  const posts = getJournalPostsFromStorage()
+  console.log(`Retrieved all ${posts.length} journal posts`)
+  return posts
 }
 
 export function getFeaturedJournalPosts(): JournalPost[] {
@@ -199,11 +283,17 @@ export function getFeaturedJournalPosts(): JournalPost[] {
 }
 
 export function getJournalPostBySlug(slug: string): JournalPost | undefined {
-  return getJournalPostsFromStorage().find((post) => post.slug === slug && post.published)
+  const posts = getJournalPostsFromStorage()
+  const post = posts.find((post) => post.slug === slug && post.published)
+  console.log(`Looking for post with slug "${slug}":`, post ? "found" : "not found")
+  return post
 }
 
 export function getJournalPostById(id: string): JournalPost | undefined {
-  return getJournalPostsFromStorage().find((post) => post.id === id)
+  const posts = getJournalPostsFromStorage()
+  const post = posts.find((post) => post.id === id)
+  console.log(`Looking for post with id "${id}":`, post ? "found" : "not found")
+  return post
 }
 
 export function getJournalPostsByCategory(category: string): JournalPost[] {
@@ -241,35 +331,83 @@ export function getAllTags(): string[] {
 }
 
 export function addJournalPost(post: Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views">): JournalPost {
-  // Renamed function and interface
   const posts = getJournalPostsFromStorage()
   const newPost: JournalPost = {
     ...post,
-    id: Date.now().toString(),
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     publishedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     views: 0,
   }
+
+  console.log("Adding new journal post:", newPost.title, "ID:", newPost.id)
   posts.unshift(newPost)
   saveJournalPostsToStorage(posts)
+  console.log(`Total posts after adding: ${posts.length}`)
+
   return newPost
 }
 
 export function updateJournalPost(id: string, updates: Partial<JournalPost>): JournalPost | null {
-  // Renamed function and interface
   const posts = getJournalPostsFromStorage()
   const index = posts.findIndex((post) => post.id === id)
+
+  console.log(`Updating post with ID: ${id}, found at index: ${index}`)
+
   if (index !== -1) {
+    // Clean up old media files that are no longer used
+    const oldMediaFiles = posts[index].mediaFiles || []
+    const newMediaFiles = updates.mediaFiles || []
+    const removedMediaFiles = oldMediaFiles.filter(
+      (oldMedia) => !newMediaFiles.some((newMedia) => newMedia.id === oldMedia.id),
+    )
+
+    // Remove stored images for removed media files
+    removedMediaFiles.forEach((media) => {
+      if (media.type === "image") {
+        removeStoredImage(media.id)
+      }
+    })
+
     posts[index] = { ...posts[index], ...updates, updatedAt: new Date().toISOString() }
     saveJournalPostsToStorage(posts)
+    console.log("Post updated successfully")
     return posts[index]
   }
+
+  console.log("Post not found for update")
   return null
 }
 
 export function deleteJournalPost(id: string): void {
-  // Renamed function
   const posts = getJournalPostsFromStorage()
+  const postToDelete = posts.find((post) => post.id === id)
+
+  console.log(`Deleting post with ID: ${id}`, postToDelete ? `(${postToDelete.title})` : "(not found)")
+
+  // Clean up associated media files
+  if (postToDelete?.mediaFiles) {
+    postToDelete.mediaFiles.forEach((media) => {
+      if (media.type === "image") {
+        removeStoredImage(media.id)
+      }
+    })
+  }
+
   const filtered = posts.filter((post) => post.id !== id)
+  console.log(`Posts before delete: ${posts.length}, after delete: ${filtered.length}`)
+
   saveJournalPostsToStorage(filtered)
+}
+
+// Utility function to force refresh data (useful for debugging)
+export function refreshJournalData(): JournalPost[] {
+  console.log("Force refreshing journal data...")
+  return getJournalPostsFromStorage()
+}
+
+// Function to check storage version (useful for debugging)
+export function getStorageVersion(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(STORAGE_VERSION_KEY)
 }
