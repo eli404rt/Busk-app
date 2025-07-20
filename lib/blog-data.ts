@@ -25,8 +25,8 @@ export interface Comment {
   approved: boolean
 }
 
-// Sample blog posts data
-export const blogPosts: BlogPost[] = [
+// Default blog posts data
+const defaultBlogPosts: BlogPost[] = [
   {
     id: "1",
     title: "The Philosophy of Art and Life",
@@ -134,6 +134,30 @@ Despite technological advances, the most powerful art still comes from the human
   },
 ]
 
+// Use localStorage for persistence with fallback
+function getBlogPostsFromStorage(): BlogPost[] {
+  if (typeof window === "undefined") return defaultBlogPosts
+  const stored = localStorage.getItem("blogPosts")
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch {
+      return defaultBlogPosts
+    }
+  }
+  // Initialize localStorage with default posts
+  localStorage.setItem("blogPosts", JSON.stringify(defaultBlogPosts))
+  return defaultBlogPosts
+}
+
+function saveBlogPostsToStorage(posts: BlogPost[]): void {
+  if (typeof window === "undefined") return
+  localStorage.setItem("blogPosts", JSON.stringify(posts))
+}
+
+// Export the blogPosts array as required
+export const blogPosts = typeof window !== "undefined" ? getBlogPostsFromStorage() : defaultBlogPosts
+
 export const comments: Comment[] = [
   {
     id: "1",
@@ -157,28 +181,36 @@ export const comments: Comment[] = [
 
 // Helper functions
 export function getBlogPosts(): BlogPost[] {
-  return blogPosts.filter((post) => post.published)
+  return getBlogPostsFromStorage().filter((post) => post.published)
+}
+
+export function getAllBlogPosts(): BlogPost[] {
+  return getBlogPostsFromStorage()
 }
 
 export function getFeaturedPosts(): BlogPost[] {
-  return blogPosts.filter((post) => post.published && post.featured)
+  return getBlogPostsFromStorage().filter((post) => post.published && post.featured)
 }
 
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {
-  return blogPosts.find((post) => post.slug === slug && post.published)
+  return getBlogPostsFromStorage().find((post) => post.slug === slug && post.published)
+}
+
+export function getBlogPostById(id: string): BlogPost | undefined {
+  return getBlogPostsFromStorage().find((post) => post.id === id)
 }
 
 export function getBlogPostsByCategory(category: string): BlogPost[] {
-  return blogPosts.filter((post) => post.published && post.category === category)
+  return getBlogPostsFromStorage().filter((post) => post.published && post.category === category)
 }
 
 export function getBlogPostsByTag(tag: string): BlogPost[] {
-  return blogPosts.filter((post) => post.published && post.tags.includes(tag))
+  return getBlogPostsFromStorage().filter((post) => post.published && post.tags.includes(tag))
 }
 
 export function searchBlogPosts(query: string): BlogPost[] {
   const lowercaseQuery = query.toLowerCase()
-  return blogPosts.filter(
+  return getBlogPostsFromStorage().filter(
     (post) =>
       post.published &&
       (post.title.toLowerCase().includes(lowercaseQuery) ||
@@ -193,11 +225,42 @@ export function getCommentsByPostId(postId: string): Comment[] {
 }
 
 export function getAllCategories(): string[] {
-  const categories = blogPosts.map((post) => post.category)
+  const categories = getBlogPostsFromStorage().map((post) => post.category)
   return [...new Set(categories)]
 }
 
 export function getAllTags(): string[] {
-  const tags = blogPosts.flatMap((post) => post.tags)
+  const tags = getBlogPostsFromStorage().flatMap((post) => post.tags)
   return [...new Set(tags)]
+}
+
+export function addBlogPost(post: Omit<BlogPost, "id" | "createdAt" | "updatedAt" | "views">): BlogPost {
+  const posts = getBlogPostsFromStorage()
+  const newPost: BlogPost = {
+    ...post,
+    id: Date.now().toString(),
+    publishedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    views: 0,
+  }
+  posts.unshift(newPost)
+  saveBlogPostsToStorage(posts)
+  return newPost
+}
+
+export function updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost | null {
+  const posts = getBlogPostsFromStorage()
+  const index = posts.findIndex((post) => post.id === id)
+  if (index !== -1) {
+    posts[index] = { ...posts[index], ...updates, updatedAt: new Date().toISOString() }
+    saveBlogPostsToStorage(posts)
+    return posts[index]
+  }
+  return null
+}
+
+export function deleteBlogPost(id: string): void {
+  const posts = getBlogPostsFromStorage()
+  const filtered = posts.filter((post) => post.id !== id)
+  saveBlogPostsToStorage(filtered)
 }

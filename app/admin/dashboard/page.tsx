@@ -29,7 +29,12 @@ import {
 } from "lucide-react"
 import { isAuthenticated, setAuthenticated } from "@/lib/auth"
 import { blogPosts, comments } from "@/lib/blog-data"
-import { getSongRequests, getSongRequestsByStatus } from "@/lib/song-requests"
+import {
+  getSongRequests,
+  getSongRequestsByStatus,
+  updateSongRequestStatus,
+  deleteSongRequest,
+} from "@/lib/song-requests"
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -98,6 +103,29 @@ export default function AdminDashboard() {
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Force re-render to get updated song requests
+      setSearchQuery((prev) => prev)
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleUpdateStatus = (id: string, status: string) => {
+    updateSongRequestStatus(id, status as any)
+    // Force re-render
+    setSearchQuery((prev) => prev + " ")
+    setSearchQuery((prev) => prev.trim())
+  }
+
+  const handleDeleteRequest = (id: string) => {
+    deleteSongRequest(id)
+    // Force re-render
+    setSearchQuery((prev) => prev + " ")
+    setSearchQuery((prev) => prev.trim())
   }
 
   return (
@@ -193,10 +221,12 @@ export default function AdminDashboard() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Blog Posts</CardTitle>
-                  <Button>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    New Post
-                  </Button>
+                  <Link href="/admin/new-post">
+                    <Button>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      New Post
+                    </Button>
+                  </Link>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Search className="h-4 w-4 text-gray-400" />
@@ -349,15 +379,18 @@ export default function AdminDashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(request.id, "approved")}>
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Approve
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(request.id, "completed")}>
                                 <Music className="mr-2 h-4 w-4" />
                                 Mark Complete
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteRequest(request.id)}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
                               </DropdownMenuItem>

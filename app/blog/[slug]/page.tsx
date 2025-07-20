@@ -3,10 +3,8 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CommentSection } from "@/components/comment-section"
-import { ArrowLeft, Calendar, Clock, Eye, Share2 } from "lucide-react"
-import { getBlogPostBySlug, getCommentsByPostId } from "@/lib/blog-data"
+import { ArrowLeft } from "lucide-react"
+import { getBlogPostBySlug } from "@/lib/blog-data"
 
 interface BlogPostPageProps {
   params: {
@@ -21,113 +19,46 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     notFound()
   }
 
-  const comments = getCommentsByPostId(post.id)
-
   const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   })
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: post.title,
-        text: post.excerpt,
-        url: window.location.href,
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-      alert("Link copied to clipboard!")
-    }
-  }
-
   return (
     <div className="min-h-screen bg-black">
-      <header className="bg-black border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <header className="bg-black py-8">
+        <div className="max-w-4xl mx-auto px-4">
           <Link href="/blog">
-            <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800 mb-4">
+            <Button variant="ghost" className="text-gray-400 hover:text-white mb-8 -ml-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Blog
+              back
             </Button>
           </Link>
         </div>
       </header>
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
-          <div className="flex items-center space-x-2 mb-4">
-            <Badge variant="secondary" className="bg-gray-800 text-gray-300 border-gray-700">
-              {post.category}
-            </Badge>
-            {post.featured && <Badge className="bg-white text-black">Featured</Badge>}
+      <article className="max-w-4xl mx-auto px-4 pb-16">
+        <header className="mb-12">
+          <h1 className="text-2xl md:text-3xl font-medium text-white mb-4 leading-tight">{post.title}</h1>
+
+          <div className="flex items-center gap-6 text-sm text-gray-500 font-mono mb-8">
+            <span>{formattedDate}</span>
+            <span>{post.readTime}m read</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{post.title}</h1>
-
-          <p className="text-xl text-gray-300 mb-6">{post.excerpt}</p>
-
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                {formattedDate}
-              </div>
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
-                {post.readTime} min read
-              </div>
-              <div className="flex items-center">
-                <Eye className="h-4 w-4 mr-1" />
-                {post.views} views
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 bg-transparent"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex gap-3 text-xs text-gray-600 mb-8">
             {post.tags.map((tag) => (
-              <Link key={tag} href={`/blog/tag/${tag}`}>
-                <Badge variant="outline" className="border-gray-700 text-gray-400 hover:bg-gray-800 cursor-pointer">
-                  #{tag}
-                </Badge>
+              <Link key={tag} href={`/blog/tag/${tag}`} className="hover:text-gray-400">
+                #{tag}
               </Link>
             ))}
           </div>
         </header>
 
-        <div className="prose prose-lg max-w-none mb-12 text-gray-300">
+        <div className="prose prose-lg max-w-none text-gray-300 leading-relaxed">
           <div dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, "<br>") }} />
         </div>
-
-        <footer className="border-t border-gray-800 pt-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Written by</p>
-              <p className="font-semibold text-white">{post.author}</p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 bg-transparent"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share this post
-            </Button>
-          </div>
-        </footer>
-
-        <CommentSection postId={post.id} comments={comments} />
       </article>
     </div>
   )
