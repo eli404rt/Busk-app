@@ -1,4 +1,4 @@
-import { getJournalPostBySlug, getCommentsByPostId, JournalPost } from "@/lib/journal-data" // Updated imports
+import { getJournalPostBySlug, getCommentsByPostId } from "@/lib/journal-data" // Updated imports
 import { notFound } from "next/navigation"
 import { format } from "date-fns"
 import { ChevronLeft } from "lucide-react"
@@ -13,8 +13,8 @@ interface BlogPostPageProps {
   }
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) { // Renamed to BlogPostPage for consistency
-  const post = getJournalPostBySlug(params.slug) // Updated function call
+export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const post = getJournalPostBySlug(params.slug)
 
   if (!post) {
     notFound()
@@ -26,7 +26,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) { // Renamed
     <div className="min-h-screen bg-black text-white">
       <header className="bg-gray-900 py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/journal"> {/* Updated link */}
+          <Link href="/journal">
             <a className="text-gray-400 hover:text-white flex items-center">
               <ChevronLeft className="h-5 w-5 mr-2" />
               Back to Journal
