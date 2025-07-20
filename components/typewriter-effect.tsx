@@ -22,16 +22,16 @@ const Button = ({ children, className, onClick, ...props }) => {
 
 
 const quotes = [
-  `No dress rehearsal, this is our life.`,
-  `Don't tell me that the sky is the limit when there are footprints on the moon.`,
-  `The future is unwritten.`,
-  `It's a long road, and it's a hard road, but it's a good road.`,
-  `We're all just trying to find our way home.`,
-  `The world's been turning, and we've been learning.`,
-  `Courage, my love, and courage.`,
-  `Sometimes the best way to say something is to say nothing at all.`,
-  `Ahead by a century.`,
-  `Fully, completely, and forever.`,
+  `Perhaps we can't stop war.`,
+  `War is the death of imagination`,
+  `Imagination has many enemies`,
+  `Children have no enemies.`,
+  `Children are the birth of imagination.`,
+  `Perhaps we CAN stop war... ?`,
+  `Thanks for helping me write that.`,
+  `Gord Downie (September 16th, 2000) Treaty One Territory, The Forks Winnipeg, Canada`,
+  `I only tell you this Courage, because you're a friend of mine. If my name was courage, I'd wanna be on time`,
+  `You ain't good looking, and your name is Courage. You better be on time.`,
 ] // Quotes from Gord Downie / The Tragically Hip
 
 const TYPING_SPEED = 80 // milliseconds per character
