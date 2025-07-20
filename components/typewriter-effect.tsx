@@ -1,27 +1,44 @@
 "use client" // This must be the absolute first line of the file
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button" // Assuming this path is correct for a Next.js project
-import { Music, DollarSign, BookOpen, Instagram } from "lucide-react"
+import { Music, DollarSign, BookOpen, Instagram, Image as ImageIcon } from "lucide-react" // Removed Sparkles icon
+
+// Define a simple Button component inline with new styling
+const Button = ({ children, className, onClick, ...props }) => {
+  // New styling for the buttons: transparent by default, with gradient and scale on hover
+  const baseClasses = "rounded-full font-medium text-center inline-flex items-center justify-center transition-all duration-300 ease-in-out"
+  const newClasses = "bg-transparent text-white hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-700 hover:scale-105" // Subtle gradient and scale
+  
+  return (
+    <button
+      className={`${baseClasses} ${newClasses} ${className} px-6 py-3`} // Added padding for consistent size
+      onClick={onClick}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
 
 const quotes = [
-  `pity you didn't dedicate your life to Art`,
-  `LIFE⁴ (ART) = ¹LOVE`,
-  `Music speaks where words fail.`,
-  `Every heartbeat is a drum, every breath a note.`,
-  `The digital revolution has expanded art's possibilities infinitely.`,
-  `Art is not what you see, but what you make others see.`,
-  `Where words leave off, music begins.`,
-  `The artist is nothing without the gift, but the gift is nothing without work.`,
-  `Creativity takes courage.`,
-  `Every artist was first an amateur.`,
-] // Added more quotes for better variety
+  `No dress rehearsal, this is our life.`,
+  `Don't tell me that the sky is the limit when there are footprints on the moon.`,
+  `The future is unwritten.`,
+  `It's a long road, and it's a hard road, but it's a good road.`,
+  `We're all just trying to find our way home.`,
+  `The world's been turning, and we've been learning.`,
+  `Courage, my love, and courage.`,
+  `Sometimes the best way to say something is to say nothing at all.`,
+  `Ahead by a century.`,
+  `Fully, completely, and forever.`,
+] // Quotes from Gord Downie / The Tragically Hip
 
 const TYPING_SPEED = 80 // milliseconds per character
 const DELETING_SPEED = 50 // milliseconds per character
 const PAUSE_AFTER_TYPE = 3000 // milliseconds (Increased pause before deleting)
 const PAUSE_AFTER_DELETE = 700 // milliseconds
-const BUTTON_FADE_IN_PERCENTAGE = 0.7 // Percentage of the first quote length
+const BUTTON_FADE_IN_PERCENTAGE = 0.3 // Percentage of the first quote length (Fade in sooner)
 
 export default function TypewriterEffect() {
   const [displayedText, setDisplayedText] = useState("")
@@ -29,6 +46,7 @@ export default function TypewriterEffect() {
   const [charIndex, setCharIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showButtons, setShowButtons] = useState(false)
+  // Removed state for modal visibility: const [showIdeaGeneratorModal, setShowIdeaGeneratorModal] = useState(false);
 
   const currentQuote = quotes[quoteIndex]
 
@@ -70,9 +88,9 @@ export default function TypewriterEffect() {
   const isCursorVisible = !isDeleting || (isDeleting && charIndex > 0);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 relative">
+    <div className="min-h-screen bg-black flex flex-col items-center relative">
       {/* Custom CSS for animations */}
-      <style>{` {/* Removed jsx attribute */}
+      <style>{`
         @keyframes cursor-blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
@@ -85,78 +103,103 @@ export default function TypewriterEffect() {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        /* New bounce animation for icons */
+        @keyframes bounce-icon {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
 
         .animate-fade-in-delay-1 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.5s; /* Initial delay for the first button */
+          animation-delay: 0.1s; /* Adjusted delay */
         }
         .animate-fade-in-delay-2 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.7s;
+          animation-delay: 0.2s; /* Adjusted delay */
         }
         .animate-fade-in-delay-3 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.9s;
+          animation-delay: 0.3s; /* Adjusted delay */
         }
         .animate-fade-in-delay-4 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 1.1s;
+          animation-delay: 0.4s; /* Adjusted delay */
         }
-        /* Removed style for the italicized cursor */
       `}</style>
 
-      <div className="text-white font-mono text-xl md:text-3xl lg:text-4xl text-center leading-relaxed mb-12 max-w-4xl">
-        <pre className="whitespace-pre-wrap font-mono inline">
-          {displayedText}
-          {/* Cursor element placed directly after displayedText without italic-cursor class */}
-          {isCursorVisible && (
-            <span className="inline-block w-1 h-6 md:h-8 lg:h-10 bg-white ml-2 animate-cursor-blink"></span>
-          )}
-        </pre>
+      {/* Top Left Logo */}
+      <div className="absolute top-4 left-4 z-20">
+        <a href="/journal" className="text-2xl font-mono text-white">eli</a> {/* Increased font size to text-2xl and linked to /journal */}
       </div>
 
       {showButtons && (
-        <div className="flex flex-wrap gap-6 justify-center items-center">
+        <div className="fixed top-0 left-0 right-0 z-10 flex flex-wrap gap-6 justify-center items-center bg-black bg-opacity-70 p-4">
           <a href="/song-request">
             <Button
-              variant="ghost"
-              className="bg-transparent border border-white text-white hover:bg-white hover:text-black transition-all duration-500 opacity-0 animate-fade-in-delay-1 px-8 py-3 text-lg"
+              className="group opacity-0 animate-fade-in-delay-1"
             >
-              <Music className="mr-3 h-5 w-5" />
+              <Music className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
               Request Song
             </Button>
           </a>
 
           <a href="/tip">
             <Button
-              variant="ghost"
-              className="bg-transparent border border-white text-white hover:bg-white hover:text-black transition-all duration-500 opacity-0 animate-fade-in-delay-2 px-8 py-3 text-lg"
+              className="group opacity-0 animate-fade-in-delay-2"
             >
-              <DollarSign className="mr-3 h-5 w-5" />
+              <DollarSign className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
               Tip
             </Button>
           </a>
 
-          <a href="/blog">
+          <a href="/journal"> {/* Renamed href to /journal */}
             <Button
-              variant="ghost"
-              className="bg-transparent border border-white text-white hover:bg-white hover:text-black transition-all duration-500 opacity-0 animate-fade-in-delay-3 px-8 py-3 text-lg"
+              className="group opacity-0 animate-fade-in-delay-3"
             >
-              <BookOpen className="mr-3 h-5 w-5" />
-              Blog
+              <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
+              Journal {/* Renamed button text */}
             </Button>
           </a>
 
-          <Button
-            variant="ghost"
-            className="bg-transparent border border-white text-white hover:bg-white hover:text-black transition-all duration-500 opacity-0 animate-fade-in-delay-4 px-8 py-3 text-lg"
-            onClick={() => window.open("https://instagram.com/eli_cadieux", "_blank")}
-          >
-            <Instagram className="mr-3 h-5 w-5" />
-            @eli_cadieux
-          </Button>
+          {/* New Gallery Button */}
+          <a href="/gallery-coming-soon">
+            <Button
+              className="group opacity-0 animate-fade-in-delay-4"
+            >
+              <ImageIcon className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
+              Gallery
+            </Button>
+          </a>
+
+          {/* Removed AI-powered Journal Idea Generator Button */}
         </div>
       )}
+
+      <div className="flex flex-col items-center justify-center flex-grow pt-28 px-8">
+        <div className="text-white font-mono text-xl md:text-3xl lg:text-4xl text-center leading-relaxed mb-12 max-w-4xl">
+          <pre className="whitespace-pre-wrap font-mono inline">
+            {displayedText}
+            {/* Cursor element placed directly after displayedText without italic-cursor class */}
+            {isCursorVisible && (
+              <span className="inline-block w-1 h-6 md:h-8 lg:h-10 bg-white ml-2 animate-cursor-blink"></span>
+            )}
+          </pre>
+        </div>
+      </div>
+
+      {/* Bottom Right Instagram Icon in Footer */}
+      <div className="fixed bottom-4 right-4 z-10">
+        <a
+          href="https://instagram.com/eli_cadieux"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white hover:text-gray-300 transition-colors duration-300"
+        >
+          <Instagram className="h-8 w-8" /> {/* Larger icon for visibility */}
+        </a>
+      </div>
+
+      {/* Removed Journal Idea Generator Modal */}
     </div>
   )
 }

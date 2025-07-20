@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Home, DollarSign, Instagram } from "lucide-react"
+import { Search, Home, DollarSign } from "lucide-react" // Removed Instagram import
 
 interface BlogHeaderProps {
   onSearch?: (query: string) => void
@@ -26,7 +26,8 @@ export function BlogHeader({ onSearch }: BlogHeaderProps) {
               </Button>
             </Link>
 
-            <Button
+            {/* Removed Instagram Button */}
+            {/* <Button
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-white"
@@ -34,7 +35,7 @@ export function BlogHeader({ onSearch }: BlogHeaderProps) {
             >
               <Instagram className="h-4 w-4 mr-2" />
               @eli_cadieux
-            </Button>
+            </Button> */}
 
             <Link href="/">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
