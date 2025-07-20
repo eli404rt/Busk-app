@@ -1,3 +1,5 @@
+"use client"
+
 export interface SongRequest {
   id: string
   name: string
@@ -9,50 +11,66 @@ export interface SongRequest {
   status: "pending" | "approved" | "completed"
 }
 
+// Default song requests
+const defaultSongRequests: SongRequest[] = [
+  {
+    id: "1",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
+    songTitle: "Bohemian Rhapsody",
+    artist: "Queen",
+    message: "This song always reminds me of my late father. Would love to hear your interpretation.",
+    createdAt: "2024-01-18T14:30:00Z",
+    status: "pending",
+  },
+  {
+    id: "2",
+    name: "Mike Chen",
+    email: "mike@example.com",
+    songTitle: "Hallelujah",
+    artist: "Leonard Cohen",
+    message: "Such a beautiful and haunting song. Perfect for your style.",
+    createdAt: "2024-01-17T09:15:00Z",
+    status: "approved",
+  },
+  {
+    id: "3",
+    name: "Emma Wilson",
+    email: "emma@example.com",
+    songTitle: "The Sound of Silence",
+    artist: "Simon & Garfunkel",
+    message: "",
+    createdAt: "2024-01-16T16:45:00Z",
+    status: "completed",
+  },
+]
+
 // Use localStorage for persistence
 function getSongRequestsFromStorage(): SongRequest[] {
-  if (typeof window === "undefined") return []
+  if (typeof window === "undefined") return defaultSongRequests
   const stored = localStorage.getItem("songRequests")
   if (stored) {
-    return JSON.parse(stored)
+    try {
+      return JSON.parse(stored)
+    } catch {
+      return defaultSongRequests
+    }
   }
-  return [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      email: "sarah@example.com",
-      songTitle: "Bohemian Rhapsody",
-      artist: "Queen",
-      message: "This song always reminds me of my late father. Would love to hear your interpretation.",
-      createdAt: "2024-01-18T14:30:00Z",
-      status: "pending",
-    },
-    {
-      id: "2",
-      name: "Mike Chen",
-      email: "mike@example.com",
-      songTitle: "Hallelujah",
-      artist: "Leonard Cohen",
-      message: "Such a beautiful and haunting song. Perfect for your style.",
-      createdAt: "2024-01-17T09:15:00Z",
-      status: "approved",
-    },
-    {
-      id: "3",
-      name: "Emma Wilson",
-      email: "emma@example.com",
-      songTitle: "The Sound of Silence",
-      artist: "Simon & Garfunkel",
-      message: "",
-      createdAt: "2024-01-16T16:45:00Z",
-      status: "completed",
-    },
-  ]
+  // Initialize localStorage with default requests
+  localStorage.setItem("songRequests", JSON.stringify(defaultSongRequests))
+  return defaultSongRequests
 }
 
 function saveSongRequestsToStorage(requests: SongRequest[]): void {
   if (typeof window === "undefined") return
   localStorage.setItem("songRequests", JSON.stringify(requests))
+  // Trigger storage event for cross-tab updates
+  window.dispatchEvent(
+    new StorageEvent("storage", {
+      key: "songRequests",
+      newValue: JSON.stringify(requests),
+    }),
+  )
 }
 
 export function getSongRequests(): SongRequest[] {
@@ -89,4 +107,28 @@ export function deleteSongRequest(id: string): void {
   const requests = getSongRequestsFromStorage()
   const filtered = requests.filter((req) => req.id !== id)
   saveSongRequestsToStorage(filtered)
+}
+
+// Hook for listening to storage changes
+import React from "react"
+
+export function useSongRequests() {
+  const [requests, setRequests] = React.useState<SongRequest[]>(getSongRequests())
+
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      setRequests(getSongRequests())
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    // Also listen for custom events
+    window.addEventListener("songRequestsUpdated", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+      window.removeEventListener("songRequestsUpdated", handleStorageChange)
+    }
+  }, [])
+
+  return requests
 }

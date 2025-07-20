@@ -39,6 +39,7 @@ import {
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [songSearchQuery, setSongSearchQuery] = useState("")
+  const [refreshKey, setRefreshKey] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -46,6 +47,33 @@ export default function AdminDashboard() {
       router.push("/admin")
     }
   }, [router])
+
+  // Listen for storage changes to refresh song requests
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "songRequests") {
+        setRefreshKey((prev) => prev + 1)
+      }
+    }
+
+    const handleCustomEvent = () => {
+      setRefreshKey((prev) => prev + 1)
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    window.addEventListener("songRequestsUpdated", handleCustomEvent)
+
+    // Poll for updates every 3 seconds
+    const interval = setInterval(() => {
+      setRefreshKey((prev) => prev + 1)
+    }, 3000)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+      window.removeEventListener("songRequestsUpdated", handleCustomEvent)
+      clearInterval(interval)
+    }
+  }, [])
 
   const handleLogout = () => {
     setAuthenticated(false)
@@ -105,27 +133,16 @@ export default function AdminDashboard() {
     }
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Force re-render to get updated song requests
-      setSearchQuery((prev) => prev)
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [])
-
   const handleUpdateStatus = (id: string, status: string) => {
     updateSongRequestStatus(id, status as any)
-    // Force re-render
-    setSearchQuery((prev) => prev + " ")
-    setSearchQuery((prev) => prev.trim())
+    setRefreshKey((prev) => prev + 1)
   }
 
   const handleDeleteRequest = (id: string) => {
-    deleteSongRequest(id)
-    // Force re-render
-    setSearchQuery((prev) => prev + " ")
-    setSearchQuery((prev) => prev.trim())
+    if (confirm("Are you sure you want to delete this song request?")) {
+      deleteSongRequest(id)
+      setRefreshKey((prev) => prev + 1)
+    }
   }
 
   return (
@@ -213,7 +230,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="posts" className="space-y-4">
           <TabsList>
             <TabsTrigger value="posts">Blog Posts</TabsTrigger>
-            <TabsTrigger value="songs">Song Requests</TabsTrigger>
+            <TabsTrigger value="songs">Song Requests ({stats.songRequests.total})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="posts">
@@ -300,7 +317,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="songs">
+          <TabsContent value="songs" key={refreshKey}>
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">

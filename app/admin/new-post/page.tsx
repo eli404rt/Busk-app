@@ -14,6 +14,8 @@ import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
 import { addBlogPost } from "@/lib/blog-data"
+import { MediaUploader } from "@/components/media-uploader"
+import type { MediaFile } from "@/lib/media-utils"
 
 export default function NewPostPage() {
   const [formData, setFormData] = useState({
@@ -27,6 +29,7 @@ export default function NewPostPage() {
     featured: false,
     published: true,
   })
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
@@ -60,6 +63,7 @@ export default function NewPostPage() {
         .map((tag) => tag.trim())
         .filter(Boolean),
       readTime,
+      mediaFiles,
     }
 
     try {
@@ -84,6 +88,14 @@ export default function NewPostPage() {
       ...prev,
       [name]: checked,
     }))
+  }
+
+  const handleMediaAdd = (media: MediaFile) => {
+    setMediaFiles((prev) => [...prev, media])
+  }
+
+  const handleMediaRemove = (mediaId: string) => {
+    setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
   return (
@@ -155,6 +167,11 @@ export default function NewPostPage() {
                   rows={15}
                   required
                 />
+              </div>
+
+              <div>
+                <Label>Media Files</Label>
+                <MediaUploader onMediaAdd={handleMediaAdd} onMediaRemove={handleMediaRemove} mediaFiles={mediaFiles} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,3 +1,5 @@
+import type { MediaFile } from "./media-utils"
+
 export interface BlogPost {
   id: string
   title: string
@@ -13,6 +15,7 @@ export interface BlogPost {
   published: boolean
   readTime: number
   views: number
+  mediaFiles?: MediaFile[]
 }
 
 export interface Comment {
@@ -63,6 +66,7 @@ Every moment we don't create is a moment we're not fully alive. Art isn't just w
     published: true,
     readTime: 5,
     views: 1247,
+    mediaFiles: [],
   },
   {
     id: "2",
@@ -97,6 +101,7 @@ Music is meant to be shared. If there's a song that speaks to your soul, don't h
     published: true,
     readTime: 3,
     views: 892,
+    mediaFiles: [],
   },
   {
     id: "3",
@@ -131,6 +136,7 @@ Despite technological advances, the most powerful art still comes from the human
     published: true,
     readTime: 4,
     views: 654,
+    mediaFiles: [],
   },
 ]
 
