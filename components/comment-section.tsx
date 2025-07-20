@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { Comment } from "@/lib/blog-data"
+import type { Comment } from "@/lib/journal-data"
 
 interface CommentSectionProps {
   postId: string

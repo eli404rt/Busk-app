@@ -26,11 +26,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     <div className="min-h-screen bg-black text-white">
       <header className="bg-gray-900 py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/journal">
-            <a className="text-gray-400 hover:text-white flex items-center">
-              <ChevronLeft className="h-5 w-5 mr-2" />
-              Back to Journal
-            </a>
+          <Link href="/journal" className="text-gray-400 hover:text-white flex items-center">
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Back to Journal
           </Link>
         </div>
       </header>
@@ -43,12 +41,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mb-6">
             {post.mediaFiles && post.mediaFiles.length > 0 && (
               <img
-                src={post.mediaFiles[0].url}
+                src={post.mediaFiles[0].url || "/placeholder.svg"}
                 alt={post.title}
                 className="w-full h-auto rounded-lg object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "https://placehold.co/1200x600/000000/FFFFFF?text=Image+Unavailable";
-                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "https://placehold.co/1200x600/000000/FFFFFF?text=Image+Unavailable"
+                  e.currentTarget.onerror = null
                 }}
               />
             )}
@@ -57,9 +55,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mt-8 pt-8 border-t border-gray-700">
             <h2 className="text-2xl font-bold mb-4">Categories & Tags</h2>
             <div className="flex flex-wrap gap-2">
-              <span className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
-                {post.category}
-              </span>
+              <span className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">{post.category}</span>
               {post.tags.map((tag) => (
                 <span key={tag} className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
                   {tag}

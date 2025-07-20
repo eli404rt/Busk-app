@@ -72,7 +72,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "")
 
-    const updatedPostData = { // Renamed variable
+    const updatedPostData = {
+      // Renamed variable
       ...formData,
       slug,
       tags: formData.tags

@@ -8,8 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Loader2 } from "lucide-react" // Added Loader2 import
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
-import { getAllJournalPosts, deleteJournalPost, updateJournalPost, JournalPost } from "@/lib/journal-data" // Updated imports
-import { format } from "date-fns"
+import { getAllJournalPosts, deleteJournalPost, updateJournalPost, type JournalPost } from "@/lib/journal-data" // Updated imports
 
 export default function DashboardPage() {
   const [posts, setPosts] = useState<JournalPost[]>([]) // Updated interface
@@ -27,7 +26,8 @@ export default function DashboardPage() {
   }, [router])
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this journal entry?")) { // Updated text
+    if (window.confirm("Are you sure you want to delete this journal entry?")) {
+      // Updated text
       deleteJournalPost(id) // Updated function call
       setPosts(getAllJournalPosts()) // Refresh posts // Updated function call
     }
@@ -85,11 +85,7 @@ export default function DashboardPage() {
                     <TableCell className="font-medium">{post.title}</TableCell>
                     <TableCell>{post.category}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleTogglePublish(post.id, post.published)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => handleTogglePublish(post.id, post.published)}>
                         {post.published ? (
                           <ToggleRight className="h-5 w-5 text-green-500" />
                         ) : (
@@ -100,7 +96,9 @@ export default function DashboardPage() {
                     <TableCell>{post.featured ? "Yes" : "No"}</TableCell>
                     <TableCell>{post.views}</TableCell>
                     <TableCell className="flex space-x-2">
-                      <Link href={`/journal/${post.slug}`}> {/* Updated link */}
+                      <Link href={`/journal/${post.slug}`}>
+                        {" "}
+                        {/* Updated link */}
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>

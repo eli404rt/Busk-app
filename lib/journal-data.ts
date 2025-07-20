@@ -1,6 +1,7 @@
 import type { MediaFile } from "./media-utils"
 
-export interface JournalPost { // Renamed from BlogPost
+export interface JournalPost {
+  // Renamed from BlogPost
   id: string
   title: string
   slug: string
@@ -28,7 +29,8 @@ export interface Comment {
 }
 
 // Default journal posts data
-const defaultJournalPosts: JournalPost[] = [ // Renamed from defaultBlogPosts
+const defaultJournalPosts: JournalPost[] = [
+  // Renamed from defaultBlogPosts
   {
     id: "1",
     title: "The Philosophy of Art and Life",
@@ -137,7 +139,8 @@ Despite technological advances, the most powerful art still comes from the human
 ]
 
 // Use localStorage for persistence with fallback
-function getJournalPostsFromStorage(): JournalPost[] { // Renamed function
+function getJournalPostsFromStorage(): JournalPost[] {
+  // Renamed function
   if (typeof window === "undefined") return defaultJournalPosts
   const stored = localStorage.getItem("journalPosts") // Changed localStorage key to "journalPosts"
   if (stored) {
@@ -152,7 +155,8 @@ function getJournalPostsFromStorage(): JournalPost[] { // Renamed function
   return defaultJournalPosts
 }
 
-function saveJournalPostsToStorage(posts: JournalPost[]): void { // Renamed function
+function saveJournalPostsToStorage(posts: JournalPost[]): void {
+  // Renamed function
   if (typeof window === "undefined") return
   localStorage.setItem("journalPosts", JSON.stringify(posts)) // Changed localStorage key
 }
@@ -236,7 +240,8 @@ export function getAllTags(): string[] {
   return [...new Set(tags)]
 }
 
-export function addJournalPost(post: Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views">): JournalPost { // Renamed function and interface
+export function addJournalPost(post: Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views">): JournalPost {
+  // Renamed function and interface
   const posts = getJournalPostsFromStorage()
   const newPost: JournalPost = {
     ...post,
@@ -250,7 +255,8 @@ export function addJournalPost(post: Omit<JournalPost, "id" | "publishedAt" | "u
   return newPost
 }
 
-export function updateJournalPost(id: string, updates: Partial<JournalPost>): JournalPost | null { // Renamed function and interface
+export function updateJournalPost(id: string, updates: Partial<JournalPost>): JournalPost | null {
+  // Renamed function and interface
   const posts = getJournalPostsFromStorage()
   const index = posts.findIndex((post) => post.id === id)
   if (index !== -1) {
@@ -261,7 +267,8 @@ export function updateJournalPost(id: string, updates: Partial<JournalPost>): Jo
   return null
 }
 
-export function deleteJournalPost(id: string): void { // Renamed function
+export function deleteJournalPost(id: string): void {
+  // Renamed function
   const posts = getJournalPostsFromStorage()
   const filtered = posts.filter((post) => post.id !== id)
   saveJournalPostsToStorage(filtered)

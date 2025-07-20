@@ -203,7 +203,7 @@ export default function NewPostPage() {
                       checked={formData.featured}
                       onCheckedChange={handleSwitchChange("featured")}
                     />
-                    <Label htmlFor="featured">Featured Entry</Label>
+                    <Label htmlFor="featured">Featured Journal Entry</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
