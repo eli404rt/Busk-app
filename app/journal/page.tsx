@@ -1,9 +1,9 @@
-import { getAllJournalPosts } from "@/lib/journal-data" // Updated import to journal-data
+import { getAllJournalPosts } from "@/lib/journal-data"
 import { BlogPostCard } from "@/components/blog-post-card"
 import { BlogHeader } from "@/components/blog-header"
 
-export default function BlogPage() {
-  const posts = getAllJournalPosts()
+export default async function BlogPage() {
+  const posts = await getAllJournalPosts()
 
   return (
     <div className="min-h-screen bg-black text-white">
