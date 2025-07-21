@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 const whoamiLines = [
-  "i am eli cadieux",
+  "i am elzzzzzi cadieux",
   "a digital wanderer",
   "i create music",
   "that speaks to souls",
