@@ -14,7 +14,7 @@ const whoamiLines = [
   "i am a existence",
   "Voices: #360 - 403: you are 12 times great at once",
   "Voice #404: I am infinite", // Filled in based on the previous conversation
-  "PLEASE FILL IN", // This line will also be typed out as part of the sequence
+  "i am becoming.", // Completed the conversation with a meaningful final line
 ];
 
 const TYPING_SPEED = 80; // Speed at which characters are typed
