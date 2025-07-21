@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Home, DollarSign } from "lucide-react" // Removed Instagram import
+import { Search, Home, DollarSign } from "lucide-react"
 
 interface BlogHeaderProps {
   onSearch?: (query: string) => void
@@ -15,27 +15,16 @@ export function BlogHeader({ onSearch }: BlogHeaderProps) {
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <Link href="/" className="text-xl font-mono text-white">
-            eli
+            agent4<span className="text-orange-400">0</span>4
           </Link>
 
           <div className="flex items-center space-x-4">
-            <Link href="/tip">
+            <Link href="/tips">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 <DollarSign className="h-4 w-4 mr-2" />
-                tip
+                tips
               </Button>
             </Link>
-
-            {/* Removed Instagram Button */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-white"
-              onClick={() => window.open("https://instagram.com/eli_cadieux", "_blank")}
-            >
-              <Instagram className="h-4 w-4 mr-2" />
-              @eli_cadieux
-            </Button> */}
 
             <Link href="/">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">

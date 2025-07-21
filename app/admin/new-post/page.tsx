@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, FileText } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
 import { addJournalPost } from "@/lib/journal-data"
@@ -88,7 +88,7 @@ export default function NewPostPage() {
       console.log("Journal post created successfully:", createdPost.id)
 
       // Show success message
-      alert(`Journal entry "${createdPost.title}" created successfully!`)
+      alert(`Journal entry "${createdPost.title}" created successfully! Markdown file has been generated.`)
 
       // Navigate back to dashboard
       router.push("/admin/dashboard")
@@ -143,13 +143,17 @@ export default function NewPostPage() {
             </Button>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create New Journal Entry</h1>
+          <p className="text-gray-600 mt-1">A markdown file will be automatically generated for this entry</p>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>New Journal Entry</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              New Journal Entry
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {error && (

@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, Save, Loader2, FileText } from "lucide-react"
 import Link from "next/link"
 import { isAuthenticated } from "@/lib/auth"
 import { getJournalPostById, updateJournalPost } from "@/lib/journal-data"
 import { MediaUploader } from "@/components/media-uploader"
 import { MarkdownEditor } from "@/components/markdown-editor"
+import { MarkdownDownloadButton } from "@/components/markdown-download-button"
 import type { MediaFile } from "@/lib/media-utils"
 import type { JournalPost } from "@/lib/journal-data"
 
@@ -26,6 +27,7 @@ interface EditPostPageProps {
 
 export default function EditPostPage({ params }: EditPostPageProps) {
   const [formData, setFormData] = useState<Omit<JournalPost, "id" | "publishedAt" | "updatedAt" | "views"> | null>(null)
+  const [originalPost, setOriginalPost] = useState<JournalPost | null>(null)
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -41,6 +43,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
     const post = getJournalPostById(id)
     if (post) {
+      setOriginalPost(post)
       setFormData({
         title: post.title,
         slug: post.slug,
@@ -97,7 +100,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        mediaFiles: [...mediaFiles], // Create a copy
+        mediaFiles: [...mediaFiles],
       }
 
       console.log("Updating journal post:", updatedPostData)
@@ -109,9 +112,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
       console.log("Journal post updated:", updatedPost)
 
-      // Small delay to ensure data is saved
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      // Show success message
+      alert(`Journal entry "${updatedPost.title}" updated successfully! Markdown file has been regenerated.`)
 
+      // Navigate back to dashboard
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Error updating post:", error)
@@ -144,7 +148,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId))
   }
 
-  if (loading || !formData) {
+  if (loading || !formData || !originalPost) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
@@ -162,14 +166,25 @@ export default function EditPostPage({ params }: EditPostPageProps) {
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Journal Entry</h1>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Edit Journal Entry</h1>
+              <p className="text-gray-600 mt-1">Markdown file will be updated automatically</p>
+            </div>
+            <MarkdownDownloadButton post={originalPost} variant="outline" size="default">
+              Download Current .md
+            </MarkdownDownloadButton>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Edit Journal Entry</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Edit Journal Entry
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {error && (

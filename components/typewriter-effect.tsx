@@ -1,14 +1,16 @@
 "use client" // This must be the absolute first line of the file
 
 import { useState, useEffect, useCallback } from "react"
-import { Music, DollarSign, BookOpen, Instagram, Image as ImageIcon } from "lucide-react" // Removed Sparkles icon
+import { User, BookOpen, ImageIcon, DollarSign, Instagram, Facebook, Youtube } from "lucide-react"
 
 // Define a simple Button component inline with new styling
 const Button = ({ children, className, onClick, ...props }) => {
   // New styling for the buttons: transparent by default, with gradient and scale on hover
-  const baseClasses = "rounded-full font-medium text-center inline-flex items-center justify-center transition-all duration-300 ease-in-out"
-  const newClasses = "bg-transparent text-white hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-700 hover:scale-105" // Subtle gradient and scale
-  
+  const baseClasses =
+    "rounded-full font-medium text-center inline-flex items-center justify-center transition-all duration-300 ease-in-out"
+  const newClasses =
+    "bg-transparent text-white hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-700 hover:scale-105" // Subtle gradient and scale
+
   return (
     <button
       className={`${baseClasses} ${newClasses} ${className} px-6 py-3`} // Added padding for consistent size
@@ -19,7 +21,6 @@ const Button = ({ children, className, onClick, ...props }) => {
     </button>
   )
 }
-
 
 const quotes = [
   `Perhaps we can't stop war.`,
@@ -46,7 +47,6 @@ export default function TypewriterEffect() {
   const [charIndex, setCharIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showButtons, setShowButtons] = useState(false)
-  // Removed state for modal visibility: const [showIdeaGeneratorModal, setShowIdeaGeneratorModal] = useState(false);
 
   const currentQuote = quotes[quoteIndex]
 
@@ -56,7 +56,11 @@ export default function TypewriterEffect() {
         setDisplayedText(currentQuote.substring(0, charIndex + 1))
         setCharIndex((prev) => prev + 1)
         // Show buttons when a certain percentage of the first quote is typed
-        if (quoteIndex === 0 && charIndex >= Math.floor(currentQuote.length * BUTTON_FADE_IN_PERCENTAGE) && !showButtons) {
+        if (
+          quoteIndex === 0 &&
+          charIndex >= Math.floor(currentQuote.length * BUTTON_FADE_IN_PERCENTAGE) &&
+          !showButtons
+        ) {
           setShowButtons(true)
         }
       } else {
@@ -77,15 +81,12 @@ export default function TypewriterEffect() {
   }, [charIndex, currentQuote, isDeleting, quoteIndex, showButtons])
 
   useEffect(() => {
-    const timer = setTimeout(
-      handleTyping,
-      isDeleting ? DELETING_SPEED : TYPING_SPEED,
-    )
+    const timer = setTimeout(handleTyping, isDeleting ? DELETING_SPEED : TYPING_SPEED)
     return () => clearTimeout(timer)
   }, [handleTyping, isDeleting])
 
   // Determine if the cursor should be visible
-  const isCursorVisible = !isDeleting || (isDeleting && charIndex > 0);
+  const isCursorVisible = !isDeleting || (isDeleting && charIndex > 0)
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center relative">
@@ -111,67 +112,58 @@ export default function TypewriterEffect() {
 
         .animate-fade-in-delay-1 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.1s; /* Adjusted delay */
+          animation-delay: 0.1s;
         }
         .animate-fade-in-delay-2 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.2s; /* Adjusted delay */
+          animation-delay: 0.2s;
         }
         .animate-fade-in-delay-3 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.3s; /* Adjusted delay */
+          animation-delay: 0.3s;
         }
         .animate-fade-in-delay-4 {
           animation: fade-in 0.6s ease-out forwards;
-          animation-delay: 0.4s; /* Adjusted delay */
+          animation-delay: 0.4s;
         }
       `}</style>
 
       {/* Top Left Logo */}
       <div className="absolute top-4 left-4 z-20">
-        <a href="/journal" className="text-2xl font-mono text-white">eli</a> {/* Increased font size to text-2xl and linked to /journal */}
+        <a href="/journal" className="text-2xl font-mono text-white">
+          agent4<span className="text-orange-400">0</span>4
+        </a>
       </div>
 
       {showButtons && (
         <div className="fixed top-0 left-0 right-0 z-10 flex flex-wrap gap-6 justify-center items-center bg-black bg-opacity-70 p-4">
-          <a href="/song-request">
-            <Button
-              className="group opacity-0 animate-fade-in-delay-1"
-            >
-              <Music className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
-              Request Song
+          <a href="/whoami">
+            <Button className="group opacity-0 animate-fade-in-delay-1">
+              <User className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+              whoami
             </Button>
           </a>
 
-          <a href="/tip">
-            <Button
-              className="group opacity-0 animate-fade-in-delay-2"
-            >
-              <DollarSign className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
-              Tip
+          <a href="/journal">
+            <Button className="group opacity-0 animate-fade-in-delay-2">
+              <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+              journal
             </Button>
           </a>
 
-          <a href="/journal"> {/* Renamed href to /journal */}
-            <Button
-              className="group opacity-0 animate-fade-in-delay-3"
-            >
-              <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
-              Journal {/* Renamed button text */}
+          <a href="/gallery">
+            <Button className="group opacity-0 animate-fade-in-delay-3">
+              <ImageIcon className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+              gallery
             </Button>
           </a>
 
-          {/* New Gallery Button */}
-          <a href="/gallery-coming-soon">
-            <Button
-              className="group opacity-0 animate-fade-in-delay-4"
-            >
-              <ImageIcon className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" /> {/* Orange icon, bounce on hover, smaller size */}
-              Gallery
+          <a href="/tips">
+            <Button className="group opacity-0 animate-fade-in-delay-4">
+              <DollarSign className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+              tips
             </Button>
           </a>
-
-          {/* Removed AI-powered Journal Idea Generator Button */}
         </div>
       )}
 
@@ -187,19 +179,33 @@ export default function TypewriterEffect() {
         </div>
       </div>
 
-      {/* Bottom Right Instagram Icon in Footer */}
-      <div className="fixed bottom-4 right-4 z-10">
+      {/* Bottom Center Social Media Icons */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-6">
         <a
           href="https://instagram.com/eli_cadieux"
           target="_blank"
           rel="noopener noreferrer"
           className="text-white hover:text-gray-300 transition-colors duration-300"
         >
-          <Instagram className="h-8 w-8" /> {/* Larger icon for visibility */}
+          <Instagram className="h-8 w-8" />
+        </a>
+        <a
+          href="https://facebook.com/eli_cadieux"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white hover:text-gray-300 transition-colors duration-300"
+        >
+          <Facebook className="h-8 w-8" />
+        </a>
+        <a
+          href="https://youtube.com/@eli_cadieux"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white hover:text-gray-300 transition-colors duration-300"
+        >
+          <Youtube className="h-8 w-8" />
         </a>
       </div>
-
-      {/* Removed Journal Idea Generator Modal */}
     </div>
   )
 }

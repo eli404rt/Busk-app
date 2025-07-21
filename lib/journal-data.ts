@@ -1,5 +1,6 @@
 import type { MediaFile } from "./media-utils"
 import { removeStoredImage, cleanupOrphanedMedia } from "./media-utils"
+import { generateMarkdownFromPost, storeMarkdownFile, removeStoredMarkdownFile } from "./markdown-generator"
 
 export interface JournalPost {
   id: string
@@ -164,10 +165,16 @@ function getJournalPostsFromStorage(): JournalPost[] {
     }
   }
 
-  // Initialize localStorage with default posts
+  // Initialize localStorage with default posts and generate their markdown files
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultJournalPosts))
     localStorage.setItem(STORAGE_VERSION_KEY, Date.now().toString())
+
+    // Generate markdown files for default posts
+    defaultJournalPosts.forEach((post) => {
+      const markdownFile = generateMarkdownFromPost(post)
+      storeMarkdownFile(post.id, markdownFile)
+    })
   } catch (error) {
     console.warn("Failed to initialize journal posts in storage:", error)
   }
@@ -240,9 +247,6 @@ function saveJournalPostsToStorage(posts: JournalPost[]): void {
     }
   }
 }
-
-// Remove the static export that was causing caching issues
-// export const journalPosts = typeof window !== "undefined" ? getJournalPostsFromStorage() : defaultJournalPosts
 
 export const comments: Comment[] = [
   {
@@ -343,8 +347,17 @@ export function addJournalPost(post: Omit<JournalPost, "id" | "publishedAt" | "u
   console.log("Adding new journal post:", newPost.title, "ID:", newPost.id)
   posts.unshift(newPost)
   saveJournalPostsToStorage(posts)
-  console.log(`Total posts after adding: ${posts.length}`)
 
+  // Generate and store markdown file
+  try {
+    const markdownFile = generateMarkdownFromPost(newPost)
+    storeMarkdownFile(newPost.id, markdownFile)
+    console.log(`Generated markdown file: ${markdownFile.filename}`)
+  } catch (error) {
+    console.warn("Failed to generate markdown file:", error)
+  }
+
+  console.log(`Total posts after adding: ${posts.length}`)
   return newPost
 }
 
@@ -371,6 +384,16 @@ export function updateJournalPost(id: string, updates: Partial<JournalPost>): Jo
 
     posts[index] = { ...posts[index], ...updates, updatedAt: new Date().toISOString() }
     saveJournalPostsToStorage(posts)
+
+    // Regenerate markdown file
+    try {
+      const markdownFile = generateMarkdownFromPost(posts[index])
+      storeMarkdownFile(posts[index].id, markdownFile)
+      console.log(`Updated markdown file: ${markdownFile.filename}`)
+    } catch (error) {
+      console.warn("Failed to update markdown file:", error)
+    }
+
     console.log("Post updated successfully")
     return posts[index]
   }
@@ -393,6 +416,9 @@ export function deleteJournalPost(id: string): void {
       }
     })
   }
+
+  // Remove stored markdown file
+  removeStoredMarkdownFile(id)
 
   const filtered = posts.filter((post) => post.id !== id)
   console.log(`Posts before delete: ${posts.length}, after delete: ${filtered.length}`)
