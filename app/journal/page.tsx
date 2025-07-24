@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { getAllJournalPosts } from "@/lib/journal-data"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { BlogPostCard } from "@/components/blog-post-card"
+import { JournalPostCard } from "@/components/journal-post-card"
 
 const TYPING_SPEED = 40
 const PAUSE_AFTER_COMPLETE = 1000
@@ -67,7 +67,7 @@ export default function JournalPage() {
             <h1 className="text-4xl font-bold mb-8 text-center">journal entries</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post) => (
-                <BlogPostCard key={post.id} post={post} />
+                <JournalPostCard key={post.id} post={post} />
               ))}
             </div>
           </>
