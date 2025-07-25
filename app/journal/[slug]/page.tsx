@@ -37,9 +37,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     <div className="min-h-screen bg-black text-white">
       <header className="bg-gray-900 py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/journal" className="text-gray-400 hover:text-white flex items-center">
-            <ChevronLeft className="h-5 w-5 mr-2" />
-            Back to Journal
+                    <a href="https://journal.agent404.art" className="text-gray-400 hover:text-white flex items-center" target="_blank" rel="noopener noreferrer">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            back to journal
           </Link>
         </div>
       </header>

@@ -130,7 +130,7 @@ export default function TypewriterEffect() {
 
       {/* Top Left Logo */}
       <div className="absolute top-4 left-4 z-20">
-        <a href="/journal" className="text-2xl font-mono text-white">
+        <a href="https://journal.agent404.art" target="_blank" rel="noopener noreferrer" className="text-2xl font-mono text-white">
           agent4<span className="text-orange-400">0</span>4
         </a>
       </div>
@@ -144,7 +144,7 @@ export default function TypewriterEffect() {
             </Button>
           </a>
 
-          <a href="/journal">
+          <a href="https://journal.agent404.art" target="_blank" rel="noopener noreferrer">
             <Button className="group opacity-0 animate-fade-in-delay-2">
               <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
               journal
