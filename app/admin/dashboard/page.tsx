@@ -1,53 +1,33 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Eye, Calendar, Tag, Folder, RefreshCw, FileText } from "lucide-react"
-import Link from "next/link"
-import { format } from "date-fns"
 import { isAuthenticated } from "@/lib/auth"
-import { getAllJournalPosts, deleteJournalPost, refreshJournalData } from "@/lib/journal-data"
-import type { JournalPost } from "@/lib/journal-data"
-import { MarkdownDownloadButton } from "@/components/markdown-download-button"
-import { BulkMarkdownExport } from "@/components/bulk-markdown-export"
 
 export default function AdminDashboard() {
-  const [posts, setPosts] = useState<JournalPost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const router = useRouter()
-
-  const loadPosts = () => {
-    try {
-      const allPosts = getAllJournalPosts()
-      setPosts(allPosts)
-      console.log(`Loaded ${allPosts.length} posts in dashboard`)
-    } catch (error) {
-      console.error("Error loading posts:", error)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/admin")
-      return
     }
+  }, [router])
 
-    loadPosts()
-
-    // Listen for storage changes to auto-refresh
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "journalPosts") {
-        console.log("Storage changed, refreshing posts...")
-        loadPosts()
-      }
-    }
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Welcome to the Admin Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Journal content has been moved to journal.agent404.art</p>
+          <p className="text-gray-600 mt-2">Visit <a href="https://journal.agent404.art/admin" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">journal.agent404.art/admin</a> to manage your journal entries.</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
 
     window.addEventListener("storage", handleStorageChange)
     return () => window.removeEventListener("storage", handleStorageChange)
