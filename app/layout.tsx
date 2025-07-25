@@ -6,16 +6,16 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Eli",
-  description: "Eli was a man once",
+  title: "agent404",
+  description: "agent404 is:",
   keywords: ["art", "philosophy", "music", "creativity", "blog", "life"],
-  authors: [{ name: "Eli Cadieux" }],
+  authors: [{ name: "agent404" }],
   openGraph: {
-    title: "Eli",
-    description: "A journey ",
+    title: "agent404",
+    description: "agent404 is:",
     type: "website",
   },
-    generator: 'v0.dev'
+    generator: 'balls'
 }
 
 export default function RootLayout({
