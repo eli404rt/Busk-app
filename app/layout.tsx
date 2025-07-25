@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "agent404",
   description: "agent404 is:",
-  keywords: ["art", "philosophy", "music", "creativity", "blog", "life"],
+  keywords: ["art", "philosophy", "music", "creativity", "life"],
   authors: [{ name: "agent404" }],
   openGraph: {
     title: "agent404",
