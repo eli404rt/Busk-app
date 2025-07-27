@@ -2,7 +2,7 @@ import { getPostData, getSortedPostsData } from '@/lib/posts';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, BookOpen, ImageIcon } from 'lucide-react';
+import { User, BookOpen, ImageIcon, Instagram, Facebook, Youtube } from 'lucide-react';
 
 export async function generateStaticParams() {
   const posts = getSortedPostsData();
@@ -12,7 +12,8 @@ export async function generateStaticParams() {
 }
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
-  const postData = await getPostData(params.slug);
+  const { slug } = await params;
+  const postData = await getPostData(slug);
 
   if (!postData) {
     notFound();

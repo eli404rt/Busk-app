@@ -65,6 +65,13 @@ export default function Header() {
             tips
           </Button>
         </Link>
+
+        <Link href="/si-times">
+          <Button className="group">
+            <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+            THETIMES
+          </Button>
+        </Link>
       </div>
     </div>
   )
