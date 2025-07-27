@@ -18,8 +18,8 @@ export default async function PostPage({ params }: { params: { slug: string } })
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Card>
+    <div className="container mx-auto py-8 bg-black text-white">
+      <Card className="bg-gray-900 text-white">
         <CardHeader>
           <CardTitle className="text-4xl font-bold mb-2">{postData.title}</CardTitle>
           <Badge variant="secondary" className="w-fit">
