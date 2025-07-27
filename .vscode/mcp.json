@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "gitmcp": {
+      "type": "sse",
+      "url": "https://gitmcp.io/eli404rt/Busk-app"
+    },
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "gemini": {
+      "command": "gemini",
+      "env": {
+        "GEMINI_API_KEY": "AIzaSyCL2TE28z9MSYSCF4oZKrVBz1idYMXfzuE"
+      }
+    }
+  }
+}

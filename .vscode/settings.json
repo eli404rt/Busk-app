@@ -1,0 +1,9 @@
+{
+    "chat.mcp.serverSampling": {
+        "Busk-app/.vscode/mcp.json: github": {
+            "allowedModels": [
+                "github.copilot-chat/gemini-2.0-flash-001"
+            ]
+        }
+    }
+}

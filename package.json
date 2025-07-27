@@ -9,6 +9,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@gongrzhe/image-gen-server": "^1.0.1",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -43,6 +45,7 @@
     "cmdk": "latest",
     "date-fns": "latest",
     "embla-carousel-react": "latest",
+    "go": "^3.0.1",
     "gray-matter": "^4.0.3",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
@@ -63,7 +66,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^22.16.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
