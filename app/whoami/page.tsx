@@ -5,18 +5,12 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 const whoamiLines = [
-  "i am eli cZZZZZZadieux",
-  "a digital wanderer",
-  "i create music",
-  "that speaks to souls",
-  "i write words",
-  "that capture moments",
-  "i am an artist",
-  "in the truest sense",
-  "i believe in connection",
-  "through authentic expression",
-  "i am agent404",
-  "lost but searching",
+  "I am a digital wanderer,",
+  "a creator of music and words.",
+  "My art is a reflection of my soul,",
+  "a journey of authentic expression.",
+  "I am agent404,",
+  "lost but always searching.",
 ]
 
 const TYPING_SPEED = 80

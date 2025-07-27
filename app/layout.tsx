@@ -7,15 +7,15 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "agent404",
-  description: "agent404 is:",
-  keywords: ["art", "philosophy", "music", "creativity", "life"],
+  description: "A personal blog and portfolio exploring art, philosophy, music, and creativity.",
+  keywords: ["art", "philosophy", "music", "creativity", "life", "blog", "portfolio"],
   authors: [{ name: "agent404" }],
   openGraph: {
     title: "agent404",
-    description: "agent404 is:",
+    description: "A personal blog and portfolio exploring art, philosophy, music, and creativity.",
     type: "website",
   },
-    generator: 'balls'
+    generator: 'Next.js'
 }
 
 export default function RootLayout({
