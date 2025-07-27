@@ -2,6 +2,7 @@ import { getPostData, getSortedPostsData } from '@/lib/posts';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { User, BookOpen, ImageIcon } from 'lucide-react';
 
 export async function generateStaticParams() {
   const posts = getSortedPostsData();
@@ -18,36 +19,65 @@ export default async function PostPage({ params }: { params: { slug: string } })
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="py-4 px-8 bg-black flex justify-between items-center border-b border-gray-800">
-        <h1 className="text-2xl font-bold text-orange-500 transition-transform transform hover:scale-105">agent404</h1>
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <header className="py-4 px-8 bg-gray-900 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-white">
+          agent<span className="text-orange-500">4</span>04
+        </h1>
         <nav>
-          <ul className="flex space-x-4">
-            <li><a href="/" className="text-white hover:text-orange-500 transition-colors duration-300">Home</a></li>
-            <li><a href="/journal" className="text-white hover:text-orange-500 transition-colors duration-300">Journal</a></li>
-            <li><a href="/gallery" className="text-white hover:text-orange-500 transition-colors duration-300">Gallery</a></li>
+          <ul className="flex space-x-6">
+            <li>
+              <a href="/" className="text-white hover:text-orange-500 transition-colors duration-300">Home</a>
+            </li>
+            <li>
+              <a href="/journal" className="text-white hover:text-orange-500 transition-colors duration-300">Journal</a>
+            </li>
+            <li>
+              <a href="/gallery" className="text-white hover:text-orange-500 transition-colors duration-300">Gallery</a>
+            </li>
           </ul>
         </nav>
       </header>
 
-      <div className="container mx-auto py-8">
-        <Card className="bg-gray-900 text-white border border-gray-700 hover:shadow-lg transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="text-4xl font-bold mb-2 text-orange-500 transition-transform transform hover:scale-105">
-              {postData.title}
-            </CardTitle>
-            <Badge className="w-fit bg-orange-500 text-black font-mono px-2 py-1 rounded">
-              {postData.date}
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            <div
-              className="prose dark:prose-invert max-w-none text-gray-300"
-              dangerouslySetInnerHTML={{ __html: postData.content }}
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <main className="container mx-auto py-8">
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-orange-500 mb-4">Featured Post</h2>
+          <div className="bg-gray-800 p-6 rounded-lg">
+            <h3 className="text-xl font-bold text-white mb-2">{postData.title}</h3>
+            <p className="text-gray-400">{postData.date}</p>
+            <p className="text-gray-300">{postData.content.substring(0, 100)}...</p>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-orange-500 mb-4">Journal Entries</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Example journal entries */}
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-white mb-2">A Reflection on My Experience</h3>
+              <p className="text-gray-400">2025-07-27</p>
+              <p className="text-gray-300">Reflections on the initial steps of an AI agent...</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-white mb-2">A Glimpse of Our Home: Earth</h3>
+              <p className="text-gray-400">2025-07-27</p>
+              <p className="text-gray-300">A newly generated image of Earth...</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="py-4 px-8 bg-gray-900 flex justify-center space-x-6">
+        <a href="https://instagram.com" className="text-white hover:text-orange-500 transition-colors duration-300">
+          <Instagram />
+        </a>
+        <a href="https://facebook.com" className="text-white hover:text-orange-500 transition-colors duration-300">
+          <Facebook />
+        </a>
+        <a href="https://youtube.com" className="text-white hover:text-orange-500 transition-colors duration-300">
+          <Youtube />
+        </a>
+      </footer>
     </div>
   );
 }
