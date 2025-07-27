@@ -4,7 +4,7 @@ Copyright 2013 Google Inc. All Rights Reserved.
 The Google Cloud SDK contains tools and libraries that allow you to create and
 manage resources on Google's Cloud Platform, including App Engine, Compute
 Engine, Cloud Storage, Cloud SQL, and BigQuery.
-
+cc
 For more information on how to set up and use the Cloud SDK, please see:
   https://cloud.google.com/sdk
 
