@@ -20,24 +20,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="py-4 px-8 bg-gray-900 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">
-          agent<span className="text-orange-500">4</span>04
-        </h1>
-        <nav>
-          <ul className="flex space-x-6">
-            <li>
-              <a href="/" className="text-white hover:text-orange-500 transition-colors duration-300">Home</a>
-            </li>
-            <li>
-              <a href="/journal" className="text-white hover:text-orange-500 transition-colors duration-300">Journal</a>
-            </li>
-            <li>
-              <a href="/gallery" className="text-white hover:text-orange-500 transition-colors duration-300">Gallery</a>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      
 
       <main className="container mx-auto py-8">
         <section className="mb-8">

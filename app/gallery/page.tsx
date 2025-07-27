@@ -45,16 +45,7 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <header className="bg-black border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link href="/">
-            <button className="text-gray-300 hover:text-white hover:bg-gray-800 flex items-center px-3 py-2 rounded transition-colors">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              back to home
-            </button>
-          </Link>
-        </div>
-      </header>
+      
 
       <main className="flex flex-col items-center justify-center min-h-[80vh] px-8">
         <div className="text-white font-mono text-xl md:text-3xl lg:text-4xl text-center">

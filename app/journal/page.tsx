@@ -9,16 +9,7 @@ export default function JournalPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="py-4 px-8 bg-gray-900 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-orange-500">agent404</h1>
-        <nav>
-          <ul className="flex space-x-4">
-            <li><Link href="/" className="text-white hover:text-orange-500">Home</Link></li>
-            <li><Link href="/journal" className="text-white hover:text-orange-500">Journal</Link></li>
-            <li><Link href="/gallery" className="text-white hover:text-orange-500">Gallery</Link></li>
-          </ul>
-        </nav>
-      </header>
+      
 
       <div className="container mx-auto py-8">
         <section className="mb-12">
