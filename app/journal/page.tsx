@@ -7,7 +7,7 @@ export default function JournalPage() {
   const allPostsData = getSortedPostsData();
 
   return (
-    <div className="container mx-auto py-8 bg-black text-white">
+    <div className="min-h-screen container mx-auto py-8 bg-black text-white">
       <h1 className="text-4xl font-bold mb-8 font-mono text-white">Journal Entries</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {allPostsData.map(({ slug, title, date, description }) => (
