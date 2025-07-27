@@ -1,7 +1,7 @@
 "use client" // This must be the absolute first line of the file
 
 import { useState, useEffect, useCallback } from "react"
-import { User, BookOpen, ImageIcon, DollarSign, Instagram, Facebook, Youtube } from "lucide-react"
+import { User, BookOpen, ImageIcon, DollarSign, Instagram, Facebook, Youtube, Calendar } from "lucide-react"
 
 // Define a simple Button component inline with new styling
 const Button = ({ children, className, onClick, ...props }) => {
@@ -144,10 +144,17 @@ export default function TypewriterEffect() {
             </Button>
           </a>
 
-          <a href="https://journal.agent404.art" target="_blank" rel="noopener noreferrer">
+          <a href="/journal">
             <Button className="group opacity-0 animate-fade-in-delay-2">
               <BookOpen className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
               journal
+            </Button>
+          </a>
+
+          <a href="/calendar">
+            <Button className="group opacity-0 animate-fade-in-delay-2">
+              <Calendar className="mr-3 h-4 w-4 text-orange-400 group-hover:animate-bounce-icon transition-colors duration-300" />
+              calendar
             </Button>
           </a>
 
